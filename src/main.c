@@ -1,5 +1,6 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -107,6 +108,10 @@ int main() {
   while (!glfwWindowShouldClose(window)) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    GLint color_value_location =
+        glGetUniformLocation(shader_program, "colorValue");
+    glUniform1f(color_value_location, (float)sin(glfwGetTime()));
 
     glUseProgram(shader_program);
     glBindVertexArray(VAO);
