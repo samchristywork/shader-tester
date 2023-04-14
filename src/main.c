@@ -38,6 +38,13 @@ GLuint create_shader(GLenum type, const char *src) {
   return shader;
 }
 
+void key_callback(GLFWwindow *window, int key, int scancode, int action,
+                  int mods) {
+  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+    glfwSetWindowShouldClose(window, GL_TRUE);
+  }
+}
+
 int main() {
   if (!glfwInit()) {
     fprintf(stderr, "Error: GLFW initialization failed\n");
@@ -76,6 +83,9 @@ int main() {
 
   glDeleteShader(vertex_shader);
   glDeleteShader(fragment_shader);
+
+
+  glfwSetKeyCallback(window, key_callback);
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
