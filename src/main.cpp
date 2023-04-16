@@ -207,9 +207,8 @@ int main() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    GLint color_value_location =
-        glGetUniformLocation(shader_program, "colorValue");
-    glUniform1f(color_value_location, (float)sin(glfwGetTime()));
+    GLint time_location = glGetUniformLocation(shader_program, "time");
+    glUniform1f(time_location, glfwGetTime());
 
     glUseProgram(shader_program);
 
