@@ -4,20 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const char *vertex_shader_src = "#version 330 core\n"
-                                "layout (location = 0) in vec3 aPos;\n"
-                                "void main() {\n"
-                                "  gl_Position = vec4(aPos, 1.0);\n"
-                                "}\n";
-
-const char *fragment_shader_src =
-    "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "uniform float colorValue;\n"
-    "void main() {\n"
-    "  FragColor = vec4(0.0, colorValue, 0.0, 1.0);\n"
-    "}\n";
-
 void glfw_error_callback(int error, const char *description) {
   fprintf(stderr, "Error: %s\n", description);
 }
@@ -44,6 +30,26 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, GL_TRUE);
   }
+}
+
+char *read_shader(const char *filename) {
+  FILE *fp = fopen(filename, "r");
+  if (!fp) {
+    fprintf(stderr, "Error: Could not open shader file %s\n", filename);
+    exit(EXIT_FAILURE);
+  }
+
+  fseek(fp, 0, SEEK_END);
+  long size = ftell(fp);
+  rewind(fp);
+
+  char *buffer = (char *)malloc(size + 1);
+  fread(buffer, 1, size, fp);
+  buffer[size] = '\0';
+
+  fclose(fp);
+
+  return buffer;
 }
 
 int main() {
@@ -73,6 +79,9 @@ int main() {
     exit(EXIT_FAILURE);
   }
 
+  char *vertex_shader_src = read_shader("res/vertex.shader");
+  char *fragment_shader_src = read_shader("res/fragment.shader");
+
   GLuint vertex_shader = create_shader(GL_VERTEX_SHADER, vertex_shader_src);
   GLuint fragment_shader =
       create_shader(GL_FRAGMENT_SHADER, fragment_shader_src);
@@ -95,6 +104,7 @@ int main() {
   glGenBuffers(1, &VBO);
 
   glBindVertexArray(VAO);
+
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
