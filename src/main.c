@@ -1,6 +1,9 @@
+#define STB_IMAGE_IMPLEMENTATION
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <math.h>
+#include <stb/stb_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -132,6 +135,13 @@ int main() {
 
   glBindVertexArray(0);
 
+  int width, height, channels;
+  unsigned char *data = stbi_load("cpp.png", &width, &height, &channels, 0);
+  if (!data) {
+    printf("Failed to load texture\n");
+    exit(-1);
+  }
+
   GLuint texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
@@ -143,6 +153,24 @@ int main() {
                   GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+  // Upload the texture data to the GPU
+  if (channels == 3) {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+                 GL_UNSIGNED_BYTE, data);
+  } else if (channels == 4) {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, data);
+  } else {
+    printf("Unsupported number of channels\n");
+    exit(-1);
+  }
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+
+  GLint ourTextureLocation = glGetUniformLocation(shader_program, "ourTexture");
+  glUniform1i(ourTextureLocation, 0);
 
   glfwSetKeyCallback(window, key_callback);
 
