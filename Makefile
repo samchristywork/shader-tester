@@ -15,6 +15,16 @@ build/%.o: src/%.cpp
 build/main: build/main.o
 	${CC} build/*.o ${LIBS} -o $@
 
+.PHONY: debug
+debug: CFLAGS+=-g -Wall -Werror -Wpedantic
+debug: LIBS+=
+debug: all
+
+.PHONY: release
+release: CFLAGS+=-O2
+release: LIBS+=
+release: all
+
 .PHONY: clean
 clean:
 	rm -rf build/
