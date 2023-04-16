@@ -2,6 +2,9 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <math.h>
 #include <stb/stb_image.h>
 #include <stdio.h>
@@ -97,7 +100,6 @@ int main() {
   glDeleteShader(vertex_shader);
   glDeleteShader(fragment_shader);
 
-
   GLfloat vertices[] = {
     // Positions and         texture coordinates
        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f,
@@ -166,6 +168,33 @@ int main() {
   }
   glGenerateMipmap(GL_TEXTURE_2D);
 
+  float x = 0.0f;
+  float y = 0.0f;
+  float z = 0.0f;
+
+  float angle = 0.0f;
+
+  int screenWidth = 800;
+  int screenHeight = 600;
+
+  glm::mat4 model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(x, y, z));
+  model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f));
+
+  // View matrix
+  glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+  glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+  glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+  glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+
+  // Projection matrix
+  float aspectRatio = (float)screenWidth / (float)screenHeight;
+  float fov = glm::radians(45.0f);
+  float nearPlane = 0.1f;
+  float farPlane = 100.0f;
+  glm::mat4 projection =
+      glm::perspective(fov, aspectRatio, nearPlane, farPlane);
+
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -183,6 +212,16 @@ int main() {
     glUniform1f(color_value_location, (float)sin(glfwGetTime()));
 
     glUseProgram(shader_program);
+
+    GLint modelLoc = glGetUniformLocation(shader_program, "model");
+    GLint viewLoc = glGetUniformLocation(shader_program, "view");
+    GLint projLoc = glGetUniformLocation(shader_program, "projection");
+
+    // Pass the matrices to the shader
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
