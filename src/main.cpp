@@ -247,44 +247,44 @@ int main() {
   int screenWidth = 800;
   int screenHeight = 600;
 
-  glm::mat4 model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(x, y, z));
-  model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f));
-
-  // View matrix
-  glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-  glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-  glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-  glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
-
-  // Projection matrix
-  float aspectRatio = (float)screenWidth / (float)screenHeight;
-  float fov = glm::radians(45.0f);
-  float nearPlane = 0.1f;
-  float farPlane = 100.0f;
-  glm::mat4 projection =
-      glm::perspective(fov, aspectRatio, nearPlane, farPlane);
+  GLint ourTextureLocation =
+      glGetUniformLocation(shader_program, "textureSampler");
+  GLint time_location = glGetUniformLocation(shader_program, "time");
+  GLint modelLoc = glGetUniformLocation(shader_program, "model");
+  GLint viewLoc = glGetUniformLocation(shader_program, "view");
+  GLint projLoc = glGetUniformLocation(shader_program, "projection");
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
 
-  GLint ourTextureLocation = glGetUniformLocation(shader_program, "ourTexture");
-  glUniform1i(ourTextureLocation, 0);
-
   glfwSetKeyCallback(window, key_callback);
 
   while (!glfwWindowShouldClose(window)) {
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    GLint time_location = glGetUniformLocation(shader_program, "time");
-    glUniform1f(time_location, glfwGetTime());
+    glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(shader_program);
 
-    GLint modelLoc = glGetUniformLocation(shader_program, "model");
-    GLint viewLoc = glGetUniformLocation(shader_program, "view");
-    GLint projLoc = glGetUniformLocation(shader_program, "projection");
+    glUniform1i(ourTextureLocation, 0);
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(x, y, z));
+    model =
+        glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    // View matrix
+    glm::vec3 cameraPos = glm::vec3(playerx, playery, playerz);
+    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+
+    // Projection matrix
+    float aspectRatio = (float)screenWidth / (float)screenHeight;
+    float fov = glm::radians(45.0f);
+    float nearPlane = 0.1f;
+    float farPlane = 100.0f;
+    glm::mat4 projection =
+        glm::perspective(fov, aspectRatio, nearPlane, farPlane);
 
     // Pass the matrices to the shader
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
