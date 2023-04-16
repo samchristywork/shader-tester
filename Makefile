@@ -1,5 +1,5 @@
 CC := g++
-LIBS := -lglfw -lGLEW -lGL -lm
+LIBS := -lglfw -lGLEW -lGL -lm -lassimp
 CFLAGS := -I src/
 
 .PHONY: all

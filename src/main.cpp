@@ -2,6 +2,9 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -9,6 +12,7 @@
 #include <stb/stb_image.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 
 void glfw_error_callback(int error, const char *description) {
   fprintf(stderr, "Error: %s\n", description);
@@ -100,18 +104,45 @@ int main() {
   glDeleteShader(vertex_shader);
   glDeleteShader(fragment_shader);
 
-  GLfloat vertices[] = {
-    // Positions and         texture coordinates
-       -0.5f, -0.5f, 0.0f,   0.0f, 0.0f,
-        0.5f, -0.5f, 0.0f,   1.0f, 0.0f,
-        0.5f,  0.5f, 0.0f,   1.0f, 1.0f,
-       -0.5f,  0.5f, 0.0f,   0.0f, 1.0f
-  };
+  Assimp::Importer importer;
+  const aiScene *scene =
+      importer.ReadFile("cube.obj", aiProcess_Triangulate | aiProcess_FlipUVs);
 
-  GLuint indices[] = {
-      0, 1, 2, // First triangle
-      0, 2, 3  // Second triangle
-  };
+  std::vector<GLfloat> vertices;
+  std::vector<GLuint> indices;
+
+  if (scene && scene->HasMeshes()) {
+    for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+      aiMesh *mesh = scene->mMeshes[i];
+      for (unsigned int j = 0; j < mesh->mNumVertices; ++j) {
+
+        // Positions
+        vertices.push_back(mesh->mVertices[j].x);
+        vertices.push_back(mesh->mVertices[j].y);
+        vertices.push_back(mesh->mVertices[j].z);
+
+        // Texture coordinates
+        if (mesh->mTextureCoords[0]) {
+          vertices.push_back(mesh->mTextureCoords[0][j].x);
+          vertices.push_back(mesh->mTextureCoords[0][j].y);
+        } else {
+          vertices.push_back(0.0f);
+          vertices.push_back(0.0f);
+        }
+      }
+
+      for (unsigned int k = 0; k < mesh->mNumFaces; ++k) {
+        aiFace face = mesh->mFaces[k];
+        for (unsigned int l = 0; l < face.mNumIndices; ++l) {
+          indices.push_back(face.mIndices[l]);
+        }
+      }
+    }
+  } else {
+    printf("Scene not loaded.\n");
+    exit(EXIT_FAILURE);
+  }
+
 
   GLuint VBO, VAO, EBO;
   glGenVertexArrays(1, &VAO);
@@ -121,11 +152,12 @@ int main() {
   glBindVertexArray(VAO);
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), &vertices[0],
+               GL_STATIC_DRAW);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
-               GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint),
+               &indices[0], GL_STATIC_DRAW);
 
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
                         (GLvoid *)0);
@@ -222,7 +254,7 @@ int main() {
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
     glfwSwapBuffers(window);
