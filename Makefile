@@ -1,14 +1,14 @@
-CC := gcc
+CC := g++
 LIBS := -lglfw -lGLEW -lGL -lm
-CFLAGS :=
+CFLAGS := -I src/
 
 .PHONY: all
 all: build/main
 
 .PHONY: objects
-objects: $(patsubst src/%.c, build/%.o, $(wildcard src/*.c))
+objects: $(patsubst src/%.cpp, build/%.o, $(wildcard src/*.cpp))
 
-build/%.o: src/%.c
+build/%.o: src/%.cpp
 	mkdir -p build
 	$(CC) -c $(CFLAGS) $< -o $@
 
