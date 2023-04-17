@@ -24,6 +24,7 @@ struct MeshData {
   GLuint EBO;
   GLsizei indexCount;
   std::vector<GLuint> indices;
+  std::vector<GLfloat> vertices;
   std::string filename;
   GLfloat x;
   GLfloat y;
@@ -176,24 +177,25 @@ int main() {
     const aiScene *scene = importer.ReadFile(
         meshDataList[i].filename, aiProcess_Triangulate | aiProcess_FlipUVs);
 
-    std::vector<GLfloat> vertices;
-
     if (scene && scene->HasMeshes()) {
       for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
         aiMesh *mesh = scene->mMeshes[i];
         for (unsigned int j = 0; j < mesh->mNumVertices; ++j) {
           // Positions
-          vertices.push_back(mesh->mVertices[j].x + meshDataList[i].x);
-          vertices.push_back(mesh->mVertices[j].y + meshDataList[i].y);
-          vertices.push_back(mesh->mVertices[j].z + meshDataList[i].z);
+          meshDataList[i].vertices.push_back(mesh->mVertices[j].x +
+                                             meshDataList[i].x);
+          meshDataList[i].vertices.push_back(mesh->mVertices[j].y +
+                                             meshDataList[i].y);
+          meshDataList[i].vertices.push_back(mesh->mVertices[j].z +
+                                             meshDataList[i].z);
 
           // Texture coordinates
           if (mesh->mTextureCoords[0]) {
-            vertices.push_back(mesh->mTextureCoords[0][j].x);
-            vertices.push_back(mesh->mTextureCoords[0][j].y);
+            meshDataList[i].vertices.push_back(mesh->mTextureCoords[0][j].x);
+            meshDataList[i].vertices.push_back(mesh->mTextureCoords[0][j].y);
           } else {
-            vertices.push_back(0.0f);
-            vertices.push_back(0.0f);
+            meshDataList[i].vertices.push_back(0.0f);
+            meshDataList[i].vertices.push_back(0.0f);
           }
         }
 
@@ -216,8 +218,9 @@ int main() {
     glBindVertexArray(meshDataList[i].VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, meshDataList[i].VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat),
-                 &vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+                 meshDataList[i].vertices.size() * sizeof(GLfloat),
+                 &meshDataList[i].vertices[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshDataList[i].EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
@@ -233,7 +236,6 @@ int main() {
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
-    vertices.clear();
   }
 
   GLuint texture;
