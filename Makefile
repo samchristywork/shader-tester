@@ -1,6 +1,13 @@
 CC := g++
 LIBS := -lglfw -lGLEW -lGL -lm -lassimp
-CFLAGS := -I src/
+CFLAGS := -I src/ -I imgui -I imgui/backends
+IMGUI_SRC = ./imgui/imgui.cpp \
+            ./imgui/imgui_draw.cpp \
+            ./imgui/imgui_widgets.cpp \
+            ./imgui/imgui_tables.cpp \
+            ./imgui/imgui_demo.cpp \
+            ./imgui/backends/imgui_impl_glfw.cpp \
+            ./imgui/backends/imgui_impl_opengl3.cpp
 
 .PHONY: all
 all: build/main
@@ -13,7 +20,8 @@ build/%.o: src/%.cpp
 	$(CC) -c $(CFLAGS) $< -o $@
 
 build/main: build/main.o
-	${CC} build/*.o ${LIBS} -o $@
+	${CC} $(CFLAGS) $(IMGUI_SRC) build/*.o ${LIBS} -o $@
+
 
 .PHONY: debug
 debug: CFLAGS+=-g -Wall -Werror -Wpedantic
