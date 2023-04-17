@@ -137,6 +137,15 @@ int main() {
 
   enableOpenGLDebugging();
 
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+  ImGui::StyleColorsDark();
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init("#version 330");
+
   char *vertex_shader_src = read_shader("res/vertex.shader");
   char *fragment_shader_src = read_shader("res/fragment.shader");
 
@@ -333,6 +342,17 @@ int main() {
                      GL_UNSIGNED_INT, 0);
     }
     glBindVertexArray(0);
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::Begin("Window");
+    ImGui::Text("Hello, World!");
+    ImGui::End();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(window);
     glfwPollEvents();
