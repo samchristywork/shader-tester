@@ -60,6 +60,10 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
                   int mods) {
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, GL_TRUE);
+  } else if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  } else if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   } else if (key == GLFW_KEY_W && action == GLFW_PRESS) {
     playerx += 1.1;
   } else if (key == GLFW_KEY_A && action == GLFW_PRESS) {
@@ -122,6 +126,8 @@ int main() {
 
   GLFWwindow *window = glfwCreateWindow(800, 600, "Hello, World!", NULL, NULL);
 
+  glfwSetWindowPos(window, 100, 100);
+
   if (!window) {
     fprintf(stderr, "Error: GLFW window creation failed\n");
     glfwTerminate();
@@ -137,6 +143,8 @@ int main() {
   }
 
   enableOpenGLDebugging();
+  glEnable(GL_DEPTH_TEST);
+  glDisable(GL_CULL_FACE);
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -311,6 +319,8 @@ int main() {
     glUseProgram(shader_program);
 
     glUniform1i(ourTextureLocation, 0);
+
+    glUniform1f(time_location, glfwGetTime());
 
     for (int i = 0; i < 2; i++) {
       glm::mat4 model = glm::mat4(1.0f);
