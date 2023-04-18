@@ -343,48 +343,54 @@ int main() {
 
     glUniform1f(time_location, glfwGetTime());
 
-    for (int i = 0; i < 2; i++) {
-      glm::mat4 model = glm::mat4(1.0f);
-      model =
-          glm::translate(model, glm::vec3(meshDataList[i].x, meshDataList[i].y,
-                                          meshDataList[i].z));
-      model =
-          glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f));
+    // Draw the first copy of the mesh
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0, 0, 0));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-      // View matrix
-      glm::vec3 cameraPos = glm::vec3(player.x, player.y, player.z);
-      glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-      glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-      glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+    glBindVertexArray(meshDataList[0].VAO);
+    glDrawElements(GL_TRIANGLES, meshDataList[0].indices.size(),
+                   GL_UNSIGNED_INT, 0);
 
-      // Projection matrix
-      float aspectRatio = (float)screenWidth / (float)screenHeight;
-      float fov = glm::radians(45.0f);
-      float nearPlane = 0.1f;
-      float farPlane = 100.0f;
-      glm::mat4 projection =
-          glm::perspective(fov, aspectRatio, nearPlane, farPlane);
+    // Draw the second copy of the mesh
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(2, 0, 0));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-      // Pass the matrices to the shader
-      glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-      glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-      glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    glBindVertexArray(meshDataList[0].VAO);
+    glDrawElements(GL_TRIANGLES, meshDataList[0].indices.size(),
+                   GL_UNSIGNED_INT, 0);
 
-      glBindVertexArray(meshDataList[i].VAO);
-      glDrawElements(GL_TRIANGLES, meshDataList[i].indices.size(),
-                     GL_UNSIGNED_INT, 0);
-    }
     glBindVertexArray(0);
 
-    imgui_render();
+    // View matrix
+    glm::vec3 cameraPos =
+        glm::vec3(5 * sin(glfwGetTime()), 0, 5 * cos(glfwGetTime()));
+    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+
+    // Projection matrix
+    float aspectRatio = (float)screenWidth / (float)screenHeight;
+    float fov = glm::radians(45.0f);
+    float nearPlane = 0.1f;
+    float farPlane = 100.0f;
+    glm::mat4 projection =
+        glm::perspective(fov, aspectRatio, nearPlane, farPlane);
+
+    // Pass the matrices to the shader
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
 
-  // glDeleteVertexArrays(1, &VAO);
-  // glDeleteBuffers(1, &VBO);
-  // glDeleteProgram(shader_program);
+  for (auto &meshData : meshDataList) {
+    glDeleteVertexArrays(1, &meshData.VAO);
+    glDeleteBuffers(1, &meshData.VBO);
+    glDeleteBuffers(1, &meshData.EBO);
+  }
 
   glfwTerminate();
 }
