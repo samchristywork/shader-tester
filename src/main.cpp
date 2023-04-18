@@ -126,6 +126,68 @@ void enableOpenGLDebugging() {
                         GL_TRUE);
 }
 
+void load_model(MeshData &meshData) {
+  Assimp::Importer importer;
+  const aiScene *scene = importer.ReadFile(
+      meshData.filename, aiProcess_Triangulate | aiProcess_FlipUVs);
+
+  if (scene && scene->HasMeshes()) {
+    for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
+      aiMesh *mesh = scene->mMeshes[i];
+      for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
+        // Positions
+        meshData.vertices.push_back(mesh->mVertices[j].x + meshData.x);
+        meshData.vertices.push_back(mesh->mVertices[j].y + meshData.y);
+        meshData.vertices.push_back(mesh->mVertices[j].z + meshData.z);
+
+        // Texture coordinates
+        if (mesh->mTextureCoords[0]) {
+          meshData.vertices.push_back(mesh->mTextureCoords[0][j].x);
+          meshData.vertices.push_back(mesh->mTextureCoords[0][j].y);
+        } else {
+          meshData.vertices.push_back(0.0f);
+          meshData.vertices.push_back(0.0f);
+        }
+      }
+
+      for (unsigned int k = 0; k < mesh->mNumFaces; ++k) {
+        aiFace face = mesh->mFaces[k];
+        for (unsigned int l = 0; l < face.mNumIndices; ++l) {
+          meshData.indices.push_back(face.mIndices[l]);
+        }
+      }
+    }
+  } else {
+    printf("Scene not loaded.\n");
+    exit(EXIT_FAILURE);
+  }
+
+  glGenVertexArrays(1, &meshData.VAO);
+  glGenBuffers(1, &meshData.VBO);
+  glGenBuffers(1, &meshData.EBO);
+
+  glBindVertexArray(meshData.VAO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, meshData.VBO);
+  glBufferData(GL_ARRAY_BUFFER, meshData.vertices.size() * sizeof(GLfloat),
+               &meshData.vertices[0], GL_STATIC_DRAW);
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshData.EBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+               meshData.indices.size() * sizeof(GLuint), &meshData.indices[0],
+               GL_STATIC_DRAW);
+
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
+                        (GLvoid *)0);
+  glEnableVertexAttribArray(0);
+
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
+                        (GLvoid *)(3 * sizeof(GLfloat)));
+  glEnableVertexAttribArray(1);
+
+  glBindVertexArray(0);
+}
+
 int main() {
   if (!glfwInit()) {
     fprintf(stderr, "Error: GLFW initialization failed\n");
@@ -178,7 +240,7 @@ int main() {
   glDeleteShader(fragment_shader);
 
   std::vector<MeshData> meshDataList(2);
-  meshDataList[0].filename = "blenderbox.obj";
+  meshDataList[0].filename = "test.obj";
   meshDataList[1].filename = "blenderbox.obj";
   meshDataList[0].x = 0.0f;
   meshDataList[0].y = 0.0f;
@@ -186,71 +248,21 @@ int main() {
   meshDataList[1].x = 1.0f;
   meshDataList[1].y = 1.0f;
   meshDataList[1].z = 1.0f;
+  meshDataList[0].VAO = 0;
+  meshDataList[1].VAO = 0;
+  meshDataList[0].VBO = 0;
+  meshDataList[1].VBO = 0;
+  meshDataList[0].EBO = 0;
+  meshDataList[1].EBO = 0;
+  meshDataList[0].indexCount = 0;
+  meshDataList[1].indexCount = 0;
+  meshDataList[0].indices.clear();
+  meshDataList[1].indices.clear();
+  meshDataList[0].vertices.clear();
+  meshDataList[1].vertices.clear();
 
-  for (unsigned int i = 0; i < 2; ++i) {
-    Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(
-        meshDataList[i].filename, aiProcess_Triangulate | aiProcess_FlipUVs);
-
-    if (scene && scene->HasMeshes()) {
-      for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
-        aiMesh *mesh = scene->mMeshes[i];
-        for (unsigned int j = 0; j < mesh->mNumVertices; ++j) {
-          // Positions
-          meshDataList[i].vertices.push_back(mesh->mVertices[j].x +
-                                             meshDataList[i].x);
-          meshDataList[i].vertices.push_back(mesh->mVertices[j].y +
-                                             meshDataList[i].y);
-          meshDataList[i].vertices.push_back(mesh->mVertices[j].z +
-                                             meshDataList[i].z);
-
-          // Texture coordinates
-          if (mesh->mTextureCoords[0]) {
-            meshDataList[i].vertices.push_back(mesh->mTextureCoords[0][j].x);
-            meshDataList[i].vertices.push_back(mesh->mTextureCoords[0][j].y);
-          } else {
-            meshDataList[i].vertices.push_back(0.0f);
-            meshDataList[i].vertices.push_back(0.0f);
-          }
-        }
-
-        for (unsigned int k = 0; k < mesh->mNumFaces; ++k) {
-          aiFace face = mesh->mFaces[k];
-          for (unsigned int l = 0; l < face.mNumIndices; ++l) {
-            meshDataList[i].indices.push_back(face.mIndices[l]);
-          }
-        }
-      }
-    } else {
-      printf("Scene not loaded.\n");
-      exit(EXIT_FAILURE);
-    }
-
-    glGenVertexArrays(1, &meshDataList[i].VAO);
-    glGenBuffers(1, &meshDataList[i].VBO);
-    glGenBuffers(1, &meshDataList[i].EBO);
-
-    glBindVertexArray(meshDataList[i].VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, meshDataList[i].VBO);
-    glBufferData(GL_ARRAY_BUFFER,
-                 meshDataList[i].vertices.size() * sizeof(GLfloat),
-                 &meshDataList[i].vertices[0], GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshDataList[i].EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 meshDataList[i].indices.size() * sizeof(GLuint),
-                 &meshDataList[i].indices[0], GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
-                          (GLvoid *)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
-                          (GLvoid *)(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
+  for (unsigned int i = 0; i < 2; i++) {
+    load_model(meshDataList[i]);
   }
 
   GLuint texture;
@@ -351,14 +363,15 @@ int main() {
     glBindVertexArray(meshDataList[0].VAO);
     glDrawElements(GL_TRIANGLES, meshDataList[0].indices.size(),
                    GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 
     // Draw the second copy of the mesh
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(2, 0, 0));
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-    glBindVertexArray(meshDataList[0].VAO);
-    glDrawElements(GL_TRIANGLES, meshDataList[0].indices.size(),
+    glBindVertexArray(meshDataList[1].VAO);
+    glDrawElements(GL_TRIANGLES, meshDataList[1].indices.size(),
                    GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
@@ -381,6 +394,8 @@ int main() {
     // Pass the matrices to the shader
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    imgui_render();
 
     glfwSwapBuffers(window);
     glfwPollEvents();
