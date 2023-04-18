@@ -8,9 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
+#include <gui.h>
 #include <math.h>
 #include <stb/stb_image.h>
 #include <stdio.h>
@@ -146,14 +144,7 @@ int main() {
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_CULL_FACE);
 
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO &io = ImGui::GetIO();
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-  ImGui::StyleColorsDark();
-  ImGui_ImplGlfw_InitForOpenGL(window, true);
-  ImGui_ImplOpenGL3_Init("#version 330");
+  imgui_init(window);
 
   char *vertex_shader_src = read_shader("res/vertex.shader");
   char *fragment_shader_src = read_shader("res/fragment.shader");
@@ -355,16 +346,7 @@ int main() {
     }
     glBindVertexArray(0);
 
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    ImGui::Begin("Window");
-    ImGui::Text("Hello, World!");
-    ImGui::End();
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    imgui_render();
 
     glfwSwapBuffers(window);
     glfwPollEvents();
