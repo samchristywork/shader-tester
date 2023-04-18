@@ -20,10 +20,13 @@ struct MeshData {
   GLuint VAO;
   GLuint VBO;
   GLuint EBO;
-  GLsizei indexCount;
   std::vector<GLuint> indices;
   std::vector<GLfloat> vertices;
   std::string filename;
+};
+
+struct ObjectData {
+  int mesh_index;
   GLfloat x;
   GLfloat y;
   GLfloat z;
@@ -242,26 +245,24 @@ int main() {
   std::vector<MeshData> meshDataList(2);
   meshDataList[0].filename = "test.obj";
   meshDataList[1].filename = "blenderbox.obj";
-  meshDataList[0].x = 0.0f;
-  meshDataList[0].y = 0.0f;
-  meshDataList[0].z = 0.0f;
-  meshDataList[1].x = 1.0f;
-  meshDataList[1].y = 1.0f;
-  meshDataList[1].z = 1.0f;
-  meshDataList[0].VAO = 0;
-  meshDataList[1].VAO = 0;
-  meshDataList[0].VBO = 0;
-  meshDataList[1].VBO = 0;
-  meshDataList[0].EBO = 0;
-  meshDataList[1].EBO = 0;
-  meshDataList[0].indexCount = 0;
-  meshDataList[1].indexCount = 0;
-  meshDataList[0].indices.clear();
-  meshDataList[1].indices.clear();
-  meshDataList[0].vertices.clear();
-  meshDataList[1].vertices.clear();
 
-  for (unsigned int i = 0; i < 2; i++) {
+  std::vector<ObjectData> objects(3);
+  objects[0].x = 0;
+  objects[0].y = 0;
+  objects[0].z = 0;
+  objects[0].mesh_index = 0;
+
+  objects[1].x = 3;
+  objects[1].y = 0;
+  objects[1].z = 0;
+  objects[1].mesh_index = 1;
+
+  objects[2].x = -3;
+  objects[2].y = 0;
+  objects[2].z = 0;
+  objects[2].mesh_index = 1;
+
+  for (unsigned int i = 0; i < meshDataList.size(); i++) {
     load_model(meshDataList[i]);
   }
 
@@ -355,30 +356,21 @@ int main() {
 
     glUniform1f(time_location, glfwGetTime());
 
-    // Draw the first copy of the mesh
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0, 0, 0));
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    for (int i = 0; i < objects.size(); i++) {
+      glm::mat4 model = glm::mat4(1.0f);
+      model = glm::translate(
+          model, glm::vec3(objects[i].x, objects[i].y, objects[i].z));
+      glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-    glBindVertexArray(meshDataList[0].VAO);
-    glDrawElements(GL_TRIANGLES, meshDataList[0].indices.size(),
-                   GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-
-    // Draw the second copy of the mesh
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(2, 0, 0));
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-    glBindVertexArray(meshDataList[1].VAO);
-    glDrawElements(GL_TRIANGLES, meshDataList[1].indices.size(),
-                   GL_UNSIGNED_INT, 0);
-
-    glBindVertexArray(0);
+      glBindVertexArray(meshDataList[objects[i].mesh_index].VAO);
+      glDrawElements(GL_TRIANGLES,
+                     meshDataList[objects[i].mesh_index].indices.size(),
+                     GL_UNSIGNED_INT, 0);
+      glBindVertexArray(0);
+    }
 
     // View matrix
-    glm::vec3 cameraPos =
-        glm::vec3(5 * sin(glfwGetTime()), 0, 5 * cos(glfwGetTime()));
+    glm::vec3 cameraPos = glm::vec3(player.x, player.y, player.z);
     glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
