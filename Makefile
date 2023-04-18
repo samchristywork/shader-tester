@@ -19,8 +19,8 @@ build/%.o: src/%.cpp
 	mkdir -p build
 	$(CC) -c $(CFLAGS) $< -o $@
 
-build/main: build/main.o
-	${CC} $(CFLAGS) $(IMGUI_SRC) build/*.o ${LIBS} -o $@
+build/main: build/main.o build/gui.o build/imgui.o build/imgui_draw.o build/imgui_widgets.o build/imgui_tables.o build/imgui_demo.o build/imgui_impl_glfw.o build/imgui_impl_opengl3.o
+	${CC} $(CFLAGS) build/*.o ${LIBS} -o $@
 
 
 .PHONY: debug
