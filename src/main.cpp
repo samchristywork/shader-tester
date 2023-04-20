@@ -5,6 +5,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <controls.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -32,16 +33,6 @@ struct ObjectData {
   GLfloat z;
 };
 
-struct Player {
-  float x;
-  float y;
-  float z;
-  bool w;
-  bool a;
-  bool s;
-  bool d;
-};
-
 Player player{0.0f, 0.0f, 5.0f, false, false, false, false};
 
 void glfw_error_callback(int error, const char *description) {
@@ -63,33 +54,6 @@ GLuint create_shader(GLenum type, const char *src) {
   }
 
   return shader;
-}
-
-void key_callback(GLFWwindow *window, int key, int scancode, int action,
-                  int mods) {
-  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-    glfwSetWindowShouldClose(window, GL_TRUE);
-  } else if (key == GLFW_KEY_P && action == GLFW_PRESS) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  } else if (key == GLFW_KEY_F && action == GLFW_PRESS) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  } else if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
-    player.w = false;
-  } else if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
-    player.a = false;
-  } else if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
-    player.s = false;
-  } else if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
-    player.d = false;
-  } else if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-    player.w = true;
-  } else if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-    player.a = true;
-  } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-    player.s = true;
-  } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-    player.d = true;
-  }
 }
 
 char *read_shader(const char *filename) {
@@ -189,6 +153,37 @@ void load_model(MeshData &meshData) {
   glEnableVertexAttribArray(1);
 
   glBindVertexArray(0);
+}
+
+void key_callback(GLFWwindow *window, int key, int scancode, int action,
+                  int mods) {
+  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+    glfwSetWindowShouldClose(window, GL_TRUE);
+  } else if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  } else if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  } else if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
+    player.w = false;
+  } else if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
+    player.a = false;
+  } else if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
+    player.s = false;
+  } else if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
+    player.d = false;
+  } else if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
+    player.space = false;
+  } else if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+    player.w = true;
+  } else if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+    player.a = true;
+  } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+    player.s = true;
+  } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+    player.d = true;
+  } else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+    player.space = true;
+  }
 }
 
 int main() {
@@ -334,18 +329,7 @@ int main() {
 
   while (!glfwWindowShouldClose(window)) {
 
-    if (player.w) {
-      player.z -= 0.1f;
-    }
-    if (player.s) {
-      player.z += 0.1f;
-    }
-    if (player.a) {
-      player.x -= 0.1f;
-    }
-    if (player.d) {
-      player.x += 0.1f;
-    }
+    update_player(window, player);
 
     glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
