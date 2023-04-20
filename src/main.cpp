@@ -103,9 +103,9 @@ void load_model(MeshData &meshData) {
       aiMesh *mesh = scene->mMeshes[i];
       for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
         // Positions
-        meshData.vertices.push_back(mesh->mVertices[j].x + meshData.x);
-        meshData.vertices.push_back(mesh->mVertices[j].y + meshData.y);
-        meshData.vertices.push_back(mesh->mVertices[j].z + meshData.z);
+        meshData.vertices.push_back(mesh->mVertices[j].x);
+        meshData.vertices.push_back(mesh->mVertices[j].y);
+        meshData.vertices.push_back(mesh->mVertices[j].z);
 
         // Texture coordinates
         if (mesh->mTextureCoords[0]) {
