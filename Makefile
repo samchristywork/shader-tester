@@ -34,6 +34,10 @@ build/main: $(OBJECTS)
 run:
 	make && ./build/main
 
+.PHONY: list
+list:
+	@echo Valid Targets:
+	@make -qp | awk -F':' '/^[a-zA-Z0-9][^$$#\/\t=]*:([^=]|$$)/ {split($$1,A,/ /);for(i in A)print A[i]}' | sort -u | grep -v "^Makefile$$" | sed 's/^/  - /g'
 
 .PHONY: debug
 debug: CFLAGS+=-g -Wall -Werror -Wpedantic
