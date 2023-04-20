@@ -186,6 +186,10 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
   }
 }
 
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+  glViewport(0, 0, width, height);
+}
+
 int main() {
   if (!glfwInit()) {
     fprintf(stderr, "Error: GLFW initialization failed\n");
@@ -312,9 +316,6 @@ int main() {
 
   float angle = 0.0f;
 
-  int screenWidth = 800;
-  int screenHeight = 600;
-
   GLint ourTextureLocation =
       glGetUniformLocation(shader_program, "textureSampler");
   GLint time_location = glGetUniformLocation(shader_program, "time");
@@ -327,7 +328,12 @@ int main() {
 
   glfwSetKeyCallback(window, key_callback);
 
+  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+  int screenWidth = 0;
+  int screenHeight = 0;
   while (!glfwWindowShouldClose(window)) {
+    glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 
     update_player(window, player);
 
