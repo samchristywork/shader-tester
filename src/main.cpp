@@ -353,8 +353,15 @@ int main() {
 
     for (int i = 0; i < objects.size(); i++) {
       glm::mat4 model = glm::mat4(1.0f);
+
       model = glm::translate(
           model, glm::vec3(objects[i].x, objects[i].y, objects[i].z));
+
+      if(i==0){
+        model = glm::translate(
+            model, glm::vec3(config->x, config->y, config->z));
+      }
+
       glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
       glBindVertexArray(meshDataList[objects[i].mesh_index].VAO);
