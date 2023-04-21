@@ -159,10 +159,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
                   int mods) {
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, GL_TRUE);
-  } else if (key == GLFW_KEY_P && action == GLFW_PRESS) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  } else if (key == GLFW_KEY_F && action == GLFW_PRESS) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   } else if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
     player.w = false;
   } else if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
@@ -204,6 +200,7 @@ int main() {
 
   GLFWwindow *window = glfwCreateWindow(800, 600, "Hello, World!", NULL, NULL);
 
+  glfwSetWindowSize(window, 800, 600);
   glfwSetWindowPos(window, 100, 100);
 
   if (!window) {
@@ -226,8 +223,8 @@ int main() {
 
   imgui_init(window);
 
-  char *vertex_shader_src = read_shader("res/vertex.shader");
-  char *fragment_shader_src = read_shader("res/fragment.shader");
+  char *vertex_shader_src = read_shader("res/shaders/vertex.shader");
+  char *fragment_shader_src = read_shader("res/shaders/fragment.shader");
 
   GLuint vertex_shader = create_shader(GL_VERTEX_SHADER, vertex_shader_src);
   GLuint fragment_shader =
@@ -242,8 +239,8 @@ int main() {
   glDeleteShader(fragment_shader);
 
   std::vector<MeshData> meshDataList(2);
-  meshDataList[0].filename = "test.obj";
-  meshDataList[1].filename = "blenderbox.obj";
+  meshDataList[0].filename = "res/models/monkey.obj";
+  meshDataList[1].filename = "res/models/torus.obj";
 
   std::vector<ObjectData> objects(3);
   objects[0].x = 0;
@@ -268,7 +265,7 @@ int main() {
   GLuint texture;
   int width, height, nrChannels;
   unsigned char *data =
-      stbi_load("texture.png", &width, &height, &nrChannels, 0);
+      stbi_load("res/textures/texture.png", &width, &height, &nrChannels, 0);
 
   if (data) {
     GLint internalFormat = 0;
