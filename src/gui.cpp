@@ -24,6 +24,9 @@ void imgui_render(Config *config) {
   ImGui::SliderFloat("x", &config->x, -1.0f, 1.0f);
   ImGui::SliderFloat("y", &config->y, -1.0f, 1.0f);
   ImGui::SliderFloat("z", &config->z, -1.0f, 1.0f);
+
+  const char *listbox_items[] = {"Point", "Line", "Fill"};
+  ImGui::ListBox("List", &config->polygon_mode, listbox_items, 3);
   ImGui::End();
 
   ImGui::Render();

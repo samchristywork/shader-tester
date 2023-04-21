@@ -7,6 +7,7 @@ struct Config {
   float x;
   float y;
   float z;
+  int polygon_mode;
 };
 
 void imgui_render(Config *config);

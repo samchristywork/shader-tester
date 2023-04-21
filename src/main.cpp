@@ -334,10 +334,23 @@ int main() {
   config->x = 0;
   config->y = 0;
   config->z = 0;
+  config->polygon_mode = 0;
 
   int screenWidth = 0;
   int screenHeight = 0;
   while (!glfwWindowShouldClose(window)) {
+    switch (config->polygon_mode) {
+    case 0:
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      break;
+    case 1:
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      break;
+    case 2:
+      glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+      break;
+    }
+
     glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 
     update_player(window, player);
