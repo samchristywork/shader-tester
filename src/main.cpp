@@ -330,6 +330,11 @@ int main() {
 
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+  Config *config = (Config *)malloc(sizeof(Config));
+  config->x = 0;
+  config->y = 0;
+  config->z = 0;
+
   int screenWidth = 0;
   int screenHeight = 0;
   while (!glfwWindowShouldClose(window)) {
@@ -377,7 +382,7 @@ int main() {
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    imgui_render();
+    imgui_render(config);
 
     glfwSwapBuffers(window);
     glfwPollEvents();
