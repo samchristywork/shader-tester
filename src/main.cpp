@@ -245,7 +245,7 @@ int main() {
   GLuint texture;
   int width, height, nrChannels;
   unsigned char *data =
-      stbi_load("res/textures/texture.png", &width, &height, &nrChannels, 0);
+      stbi_load("res/textures/gradient.png", &width, &height, &nrChannels, 0);
 
   if (data) {
     GLint internalFormat = 0;

@@ -1,6 +1,6 @@
 CC := g++
 LIBS := -lglfw -lGLEW -lGL -lm -lassimp
-CFLAGS := -I src/ -I imgui -I imgui/backends
+CFLAGS := -I src/ -I external/imgui -I external/imgui/backends
 OBJECTS := \
 	build/main.o \
 	build/gui.o \
@@ -19,7 +19,7 @@ all: build/main
 .PHONY: objects
 objects: $(patsubst src/%.cpp, build/%.o, $(wildcard src/*.cpp))
 
-build/%.o: imgui/%.cpp
+build/%.o: external/imgui/%.cpp
 	mkdir -p build/backends/
 	$(CC) -c $(CFLAGS) $< -o $@
 
