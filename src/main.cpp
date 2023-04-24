@@ -33,7 +33,7 @@ struct ObjectData {
   GLfloat z;
 };
 
-Player player{0.0f, 0.0f, 5.0f, false, false, false, false};
+Player player{0.0f, 0.0f, 0.0f, 0.0f, 5.0f};
 
 void glfw_error_callback(int error, const char *description) {
   fprintf(stderr, "Error: %s\n", description);
@@ -159,26 +159,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
                   int mods) {
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, GL_TRUE);
-  } else if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
-    player.w = false;
-  } else if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
-    player.a = false;
-  } else if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
-    player.s = false;
-  } else if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
-    player.d = false;
-  } else if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
-    player.space = false;
-  } else if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-    player.w = true;
-  } else if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-    player.a = true;
-  } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-    player.s = true;
-  } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-    player.d = true;
-  } else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
-    player.space = true;
   }
 }
 

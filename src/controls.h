@@ -7,12 +7,6 @@ struct Player {
   float x;
   float y;
   float z;
-  bool w;
-  bool a;
-  bool s;
-  bool d;
-  bool space;
-  bool shift;
 };
 
 void update_player(GLFWwindow *window, struct Player &player);
