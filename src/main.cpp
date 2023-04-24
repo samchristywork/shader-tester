@@ -170,6 +170,15 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
+ObjectData load_object(int idx, float x, float y, float z) {
+  return ObjectData {
+    idx,
+    x,
+    y,
+    z
+  };
+}
+
 int main() {
   if (!glfwInit()) {
     fprintf(stderr, "Error: GLFW initialization failed\n");
@@ -234,25 +243,12 @@ int main() {
   load_model(&meshDataList, "res/models/torus.obj");
   load_model(&meshDataList, "res/models/uvsphere.obj");
 
-  std::vector<ObjectData> objects(3);
-  objects[0].x = 0;
-  objects[0].y = 0;
-  objects[0].z = 0;
-  objects[0].mesh_index = 0;
-
-  objects[1].x = 3;
-  objects[1].y = 0;
-  objects[1].z = 0;
-  objects[1].mesh_index = 1;
-
-  objects[2].x = -3;
-  objects[2].y = 0;
-  objects[2].z = 0;
-  objects[2].mesh_index = 1;
-
-  for (unsigned int i = 0; i < meshDataList.size(); i++) {
-    load_model(meshDataList[i]);
-  }
+  std::vector<ObjectData> objects;
+  objects.push_back(load_object(0, -6, 0, 0));
+  objects.push_back(load_object(2, -3, 0, 0));
+  objects.push_back(load_object(5, 0, 0, 0));
+  objects.push_back(load_object(6, 3, 0, 0));
+  objects.push_back(load_object(7, 6, 0, 0));
 
   GLuint texture;
   int width, height, nrChannels;
