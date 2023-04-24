@@ -7,6 +7,8 @@ struct Player {
   float x;
   float y;
   float z;
+  float theta;
+  float r;
 };
 
 void update_player(GLFWwindow *window, struct Player &player);
