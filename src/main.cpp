@@ -93,34 +93,36 @@ void enableOpenGLDebugging() {
                         GL_TRUE);
 }
 
-void load_model(MeshData &meshData) {
+void load_model(std::vector<MeshData> *meshDataList, const char *filename) {
+  MeshData *meshData = new MeshData;
+
   Assimp::Importer importer;
   const aiScene *scene = importer.ReadFile(
-      meshData.filename, aiProcess_Triangulate | aiProcess_FlipUVs);
+      filename, aiProcess_Triangulate | aiProcess_FlipUVs);
 
   if (scene && scene->HasMeshes()) {
     for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
       aiMesh *mesh = scene->mMeshes[i];
       for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
         // Positions
-        meshData.vertices.push_back(mesh->mVertices[j].x);
-        meshData.vertices.push_back(mesh->mVertices[j].y);
-        meshData.vertices.push_back(mesh->mVertices[j].z);
+        meshData->vertices.push_back(mesh->mVertices[j].x);
+        meshData->vertices.push_back(mesh->mVertices[j].y);
+        meshData->vertices.push_back(mesh->mVertices[j].z);
 
         // Texture coordinates
         if (mesh->mTextureCoords[0]) {
-          meshData.vertices.push_back(mesh->mTextureCoords[0][j].x);
-          meshData.vertices.push_back(mesh->mTextureCoords[0][j].y);
+          meshData->vertices.push_back(mesh->mTextureCoords[0][j].x);
+          meshData->vertices.push_back(mesh->mTextureCoords[0][j].y);
         } else {
-          meshData.vertices.push_back(0.0f);
-          meshData.vertices.push_back(0.0f);
+          meshData->vertices.push_back(0.0f);
+          meshData->vertices.push_back(0.0f);
         }
       }
 
       for (unsigned int k = 0; k < mesh->mNumFaces; ++k) {
         aiFace face = mesh->mFaces[k];
         for (unsigned int l = 0; l < face.mNumIndices; ++l) {
-          meshData.indices.push_back(face.mIndices[l]);
+          meshData->indices.push_back(face.mIndices[l]);
         }
       }
     }
@@ -129,19 +131,19 @@ void load_model(MeshData &meshData) {
     exit(EXIT_FAILURE);
   }
 
-  glGenVertexArrays(1, &meshData.VAO);
-  glGenBuffers(1, &meshData.VBO);
-  glGenBuffers(1, &meshData.EBO);
+  glGenVertexArrays(1, &meshData->VAO);
+  glGenBuffers(1, &meshData->VBO);
+  glGenBuffers(1, &meshData->EBO);
 
-  glBindVertexArray(meshData.VAO);
+  glBindVertexArray(meshData->VAO);
 
-  glBindBuffer(GL_ARRAY_BUFFER, meshData.VBO);
-  glBufferData(GL_ARRAY_BUFFER, meshData.vertices.size() * sizeof(GLfloat),
-               &meshData.vertices[0], GL_STATIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, meshData->VBO);
+  glBufferData(GL_ARRAY_BUFFER, meshData->vertices.size() * sizeof(GLfloat),
+               &meshData->vertices[0], GL_STATIC_DRAW);
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshData.EBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshData->EBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-               meshData.indices.size() * sizeof(GLuint), &meshData.indices[0],
+               meshData->indices.size() * sizeof(GLuint), &meshData->indices[0],
                GL_STATIC_DRAW);
 
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
@@ -153,6 +155,8 @@ void load_model(MeshData &meshData) {
   glEnableVertexAttribArray(1);
 
   glBindVertexArray(0);
+
+  meshDataList->push_back(*meshData);
 }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action,
@@ -218,9 +222,17 @@ int main() {
   glDeleteShader(vertex_shader);
   glDeleteShader(fragment_shader);
 
-  std::vector<MeshData> meshDataList(2);
-  meshDataList[0].filename = "res/models/monkey.obj";
-  meshDataList[1].filename = "res/models/torus.obj";
+  std::vector<MeshData> meshDataList;
+  load_model(&meshDataList, "res/models/box.obj");
+  load_model(&meshDataList, "res/models/circle.obj");
+  load_model(&meshDataList, "res/models/cone.obj");
+  load_model(&meshDataList, "res/models/cylinder.obj");
+  load_model(&meshDataList, "res/models/grid.obj");
+  load_model(&meshDataList, "res/models/icosphere.obj");
+  load_model(&meshDataList, "res/models/monkey.obj");
+  load_model(&meshDataList, "res/models/plane.obj");
+  load_model(&meshDataList, "res/models/torus.obj");
+  load_model(&meshDataList, "res/models/uvsphere.obj");
 
   std::vector<ObjectData> objects(3);
   objects[0].x = 0;
