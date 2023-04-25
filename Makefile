@@ -5,6 +5,7 @@ OBJECTS := \
 	build/main.o \
 	build/gui.o \
 	build/controls.o \
+	build/mesh.o \
 	build/imgui.o \
 	build/imgui_draw.o \
 	build/imgui_widgets.o \
