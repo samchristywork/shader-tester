@@ -21,6 +21,6 @@ void update_player(GLFWwindow *window, struct Player &player) {
     player.y -= 0.1f;
   }
 
-  player.x=player.r*sin(player.theta);
-  player.z=player.r*cos(player.theta);
+  player.x = player.r * sin(player.theta);
+  player.z = player.r * cos(player.theta);
 }

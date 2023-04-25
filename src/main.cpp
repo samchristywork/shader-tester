@@ -84,15 +84,6 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-ObjectData load_object(int idx, float x, float y, float z) {
-  return ObjectData {
-    idx,
-    x,
-    y,
-    z
-  };
-}
-
 int main() {
   if (!glfwInit()) {
     fprintf(stderr, "Error: GLFW initialization failed\n");
@@ -158,11 +149,11 @@ int main() {
   load_model(&meshDataList, "res/models/uvsphere.obj");
 
   std::vector<ObjectData> objects;
-  objects.push_back(load_object(0, -6, 0, 0));
-  objects.push_back(load_object(2, -3, 0, 0));
-  objects.push_back(load_object(5, 0, 0, 0));
-  objects.push_back(load_object(6, 3, 0, 0));
-  objects.push_back(load_object(7, 6, 0, 0));
+  objects.push_back(ObjectData{0, -6, 0, 0});
+  objects.push_back(ObjectData{2, -3, 0, 0});
+  objects.push_back(ObjectData{5, 0, 0, 0});
+  objects.push_back(ObjectData{6, 3, 0, 0});
+  objects.push_back(ObjectData{7, 6, 0, 0});
 
   GLuint texture;
   int width, height, nrChannels;
@@ -269,9 +260,9 @@ int main() {
       model = glm::translate(
           model, glm::vec3(objects[i].x, objects[i].y, objects[i].z));
 
-      if(i==0){
-        model = glm::translate(
-            model, glm::vec3(config->x, config->y, config->z));
+      if (i == 0) {
+        model =
+            glm::translate(model, glm::vec3(config->x, config->y, config->z));
       }
 
       glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
