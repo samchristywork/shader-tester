@@ -86,7 +86,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-GLuint load_texture(const char *filename) {
+GLuint load_texture(const char *filename, GLenum texture_idx) {
   GLuint texture;
   int width, height, nrChannels;
   unsigned char *data = stbi_load(filename, &width, &height, &nrChannels, 0);
@@ -135,7 +135,7 @@ GLuint load_texture(const char *filename) {
 
   glGenerateMipmap(GL_TEXTURE_2D);
 
-  glActiveTexture(GL_TEXTURE0);
+  glActiveTexture(texture_idx);
   glBindTexture(GL_TEXTURE_2D, texture);
 
   return texture;
@@ -212,8 +212,11 @@ int main() {
   objects.push_back(ObjectData{6, 3, 0, 0});
   objects.push_back(ObjectData{7, 6, 0, 0});
 
-  load_texture("res/textures/gradient.png");
+  GLuint texture0 = load_texture("res/textures/gradient.png", GL_TEXTURE0);
+  GLuint texture1 = load_texture("res/textures/checkerboard.png", GL_TEXTURE1);
 
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, texture1);
 
   float angle = 0.0f;
 
