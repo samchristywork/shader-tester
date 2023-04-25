@@ -15,7 +15,12 @@ struct ObjectData {
   GLfloat z;
 };
 
-Player player{0.0f, 0.0f, 0.0f, 0.0f, 5.0f};
+struct TextureData {
+  GLuint texture;
+  GLenum texture_idx;
+};
+
+Player player{0.0f, 5.0f, 0.0f, 0.0f, 10.0f};
 
 void glfw_error_callback(int error, const char *description) {
   fprintf(stderr, "Error: %s\n", description);
@@ -153,7 +158,7 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-  GLFWwindow *window = glfwCreateWindow(800, 600, "Hello, World!", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(800, 600, "Shader Tester", NULL, NULL);
 
   glfwSetWindowSize(window, 800, 600);
   glfwSetWindowPos(window, 100, 100);
@@ -212,11 +217,16 @@ int main() {
   objects.push_back(ObjectData{6, 3, 0, 0});
   objects.push_back(ObjectData{7, 6, 0, 0});
 
-  GLuint texture0 = load_texture("res/textures/gradient.png", GL_TEXTURE0);
-  GLuint texture1 = load_texture("res/textures/checkerboard.png", GL_TEXTURE1);
+  std::vector<TextureData> textures;
 
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, texture1);
+  textures.push_back(TextureData{
+      load_texture("res/textures/gradient.png", GL_TEXTURE0), GL_TEXTURE0});
+
+  textures.push_back(TextureData{
+      load_texture("res/textures/checkerboard.png", GL_TEXTURE1), GL_TEXTURE1});
+
+  glActiveTexture(textures[0].texture_idx);
+  glBindTexture(GL_TEXTURE_2D, textures[0].texture);
 
   float angle = 0.0f;
 
