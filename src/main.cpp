@@ -4,7 +4,9 @@
 #include <controls.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <gui.h>
+#include <mesh.h>
 #include <stb/stb_image.h>
+#include <vector>
 
 struct ObjectData {
   int mesh_index;
