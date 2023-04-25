@@ -86,6 +86,61 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
+GLuint load_texture(const char *filename) {
+  GLuint texture;
+  int width, height, nrChannels;
+  unsigned char *data = stbi_load(filename, &width, &height, &nrChannels, 0);
+
+  if (data) {
+    GLint internalFormat = 0;
+    GLint format = 0;
+    switch (nrChannels) {
+    case 1:
+      internalFormat = GL_R8;
+      format = GL_RED;
+      break;
+    case 2:
+      internalFormat = GL_RG8;
+      format = GL_RG;
+      break;
+    case 3:
+      internalFormat = GL_RGB8;
+      format = GL_RGB;
+      break;
+    case 4:
+      internalFormat = GL_RGBA8;
+      format = GL_RGBA;
+      break;
+    default:
+      printf("Unknown number of channels in texture\n");
+      exit(EXIT_FAILURE);
+    }
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format,
+                 GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+  } else {
+    printf("Failed to load texture\n");
+  }
+
+  stbi_image_free(data);
+
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+
+  return texture;
+}
+
 int main() {
   if (!glfwInit()) {
     fprintf(stderr, "Error: GLFW initialization failed\n");
@@ -157,54 +212,8 @@ int main() {
   objects.push_back(ObjectData{6, 3, 0, 0});
   objects.push_back(ObjectData{7, 6, 0, 0});
 
-  GLuint texture;
-  int width, height, nrChannels;
-  unsigned char *data =
-      stbi_load("res/textures/gradient.png", &width, &height, &nrChannels, 0);
+  load_texture("res/textures/gradient.png");
 
-  if (data) {
-    GLint internalFormat = 0;
-    GLint format = 0;
-    switch (nrChannels) {
-    case 1:
-      internalFormat = GL_R8;
-      format = GL_RED;
-      break;
-    case 2:
-      internalFormat = GL_RG8;
-      format = GL_RG;
-      break;
-    case 3:
-      internalFormat = GL_RGB8;
-      format = GL_RGB;
-      break;
-    case 4:
-      internalFormat = GL_RGBA8;
-      format = GL_RGBA;
-      break;
-    default:
-      printf("Unknown number of channels in texture\n");
-      exit(EXIT_FAILURE);
-    }
-
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format,
-                 GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    printf("Failed to load texture\n");
-  }
-
-  stbi_image_free(data);
-
-  glGenerateMipmap(GL_TEXTURE_2D);
 
   float angle = 0.0f;
 
@@ -214,9 +223,6 @@ int main() {
   GLint modelLoc = glGetUniformLocation(shader_program, "model");
   GLint viewLoc = glGetUniformLocation(shader_program, "view");
   GLint projLoc = glGetUniformLocation(shader_program, "projection");
-
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture);
 
   glfwSetKeyCallback(window, key_callback);
 
@@ -251,8 +257,6 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(shader_program);
-
-    glUniform1i(ourTextureLocation, 0);
 
     glUniform1f(time_location, glfwGetTime());
 
