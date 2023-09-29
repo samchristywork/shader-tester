@@ -10,6 +10,7 @@
 
 struct ObjectData {
   int mesh_index;
+  int texture_index;
   GLfloat x;
   GLfloat y;
   GLfloat z;
@@ -211,11 +212,11 @@ int main() {
   load_model(&meshDataList, "res/models/uvsphere.obj");
 
   std::vector<ObjectData> objects;
-  objects.push_back(ObjectData{0, -6, 0, 0});
-  objects.push_back(ObjectData{2, -3, 0, 0});
-  objects.push_back(ObjectData{5, 0, 0, 0});
-  objects.push_back(ObjectData{6, 3, 0, 0});
-  objects.push_back(ObjectData{7, 6, 0, 0});
+  objects.push_back(ObjectData{0, 0, -6, 0, 0});
+  objects.push_back(ObjectData{2, 1, -3, 0, 0});
+  objects.push_back(ObjectData{5, 0, 0, 0, 0});
+  objects.push_back(ObjectData{6, 1, 3, 0, 0});
+  objects.push_back(ObjectData{7, 0, 6, 0, 0});
 
   std::vector<TextureData> textures;
 
@@ -224,9 +225,6 @@ int main() {
 
   textures.push_back(TextureData{
       load_texture("res/textures/checkerboard.png", GL_TEXTURE1), GL_TEXTURE1});
-
-  glActiveTexture(textures[0].texture_idx);
-  glBindTexture(GL_TEXTURE_2D, textures[0].texture);
 
   float angle = 0.0f;
 
@@ -247,9 +245,14 @@ int main() {
   config->z = 0;
   config->polygon_mode = 0;
 
+  int frame=0;
   int screenWidth = 0;
   int screenHeight = 0;
   while (!glfwWindowShouldClose(window)) {
+    glActiveTexture(textures[frame%2].texture_idx);
+    glBindTexture(GL_TEXTURE_2D, textures[frame%2].texture);
+    frame++;
+
     switch (config->polygon_mode) {
     case 0:
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -274,6 +277,7 @@ int main() {
     glUniform1f(time_location, glfwGetTime());
 
     for (int i = 0; i < objects.size(); i++) {
+
       glm::mat4 model = glm::mat4(1.0f);
 
       model = glm::translate(
