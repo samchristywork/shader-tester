@@ -6,6 +6,7 @@
 
 void load_model(std::vector<MeshData> *meshDataList, const char *filename) {
   MeshData *meshData = new MeshData;
+  meshData->filename = filename;
 
   Assimp::Importer importer;
   const aiScene *scene =
