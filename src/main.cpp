@@ -169,6 +169,16 @@ ShaderData load_shader_program(const std::string &name, const char *vert_path,
   glAttachShader(prog, vert);
   glAttachShader(prog, frag);
   glLinkProgram(prog);
+
+  GLint link_success;
+  glGetProgramiv(prog, GL_LINK_STATUS, &link_success);
+  if (!link_success) {
+    char info_log[512];
+    glGetProgramInfoLog(prog, 512, NULL, info_log);
+    fprintf(stderr, "Error: Shader linking failed: %s\n", info_log);
+    exit(EXIT_FAILURE);
+  }
+
   glDeleteShader(vert);
   glDeleteShader(frag);
 
