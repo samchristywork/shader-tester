@@ -227,6 +227,8 @@ int main() {
       "perlin", "res/shaders/perlin.vert", "res/shaders/perlin.frag"));
   shaders.push_back(load_shader_program(
       "ripple", "res/shaders/ripple.vert", "res/shaders/ripple.frag"));
+  shaders.push_back(load_shader_program(
+      "mandelbrot", "res/shaders/mandelbrot.vert", "res/shaders/mandelbrot.frag"));
 
   std::vector<std::string> shader_names;
   for (const auto &s : shaders) shader_names.push_back(s.name);
