@@ -258,11 +258,35 @@ int main() {
   glfwSetKeyCallback(window, key_callback);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+  // Fullscreen quad (NDC coords, identity matrices will fill the screen)
+  float quad_verts[] = {
+      -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+       1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+       1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+      -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+  };
+  unsigned int quad_indices[] = {0, 1, 2, 0, 2, 3};
+  GLuint quadVAO, quadVBO, quadEBO;
+  glGenVertexArrays(1, &quadVAO);
+  glGenBuffers(1, &quadVBO);
+  glGenBuffers(1, &quadEBO);
+  glBindVertexArray(quadVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(quad_verts), quad_verts, GL_STATIC_DRAW);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadEBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quad_indices), quad_indices, GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+  glBindVertexArray(0);
+
   Config *config = (Config *)malloc(sizeof(Config));
   config->mesh_index = 0;
   config->texture_index = 0;
   config->shader_index = 0;
   config->polygon_mode = 0;
+  config->render_mode = 0;
 
   int screenWidth = 0;
   int screenHeight = 0;
@@ -293,26 +317,38 @@ int main() {
     glUniform1i(shader.texture_loc, 0);
     glUniform1f(shader.time_loc, (float)glfwGetTime());
 
-    glm::mat4 model = glm::mat4(1.0f);
-    glUniformMatrix4fv(shader.model_loc, 1, GL_FALSE, glm::value_ptr(model));
+    glm::mat4 identity = glm::mat4(1.0f);
 
-    glBindVertexArray(meshDataList[config->mesh_index].VAO);
-    glDrawElements(GL_TRIANGLES,
-                   (GLsizei)meshDataList[config->mesh_index].indices.size(),
-                   GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
+    if (config->render_mode == 1) {
+      // Fullscreen quad: pass identity matrices so NDC coords pass through
+      glUniformMatrix4fv(shader.model_loc, 1, GL_FALSE, glm::value_ptr(identity));
+      glUniformMatrix4fv(shader.view_loc, 1, GL_FALSE, glm::value_ptr(identity));
+      glUniformMatrix4fv(shader.proj_loc, 1, GL_FALSE, glm::value_ptr(identity));
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glBindVertexArray(quadVAO);
+      glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+      glBindVertexArray(0);
+    } else {
+      glUniformMatrix4fv(shader.model_loc, 1, GL_FALSE, glm::value_ptr(identity));
 
-    glm::vec3 cameraPos = glm::vec3(player.x, player.y, player.z);
-    glm::mat4 view =
-        glm::lookAt(cameraPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+      glBindVertexArray(meshDataList[config->mesh_index].VAO);
+      glDrawElements(GL_TRIANGLES,
+                     (GLsizei)meshDataList[config->mesh_index].indices.size(),
+                     GL_UNSIGNED_INT, 0);
+      glBindVertexArray(0);
 
-    float aspectRatio = (float)screenWidth / (float)screenHeight;
-    glm::mat4 projection =
-        glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
+      glm::vec3 cameraPos = glm::vec3(player.x, player.y, player.z);
+      glm::mat4 view =
+          glm::lookAt(cameraPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    glUniformMatrix4fv(shader.view_loc, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(shader.proj_loc, 1, GL_FALSE,
-                       glm::value_ptr(projection));
+      float aspectRatio = (float)screenWidth / (float)screenHeight;
+      glm::mat4 projection =
+          glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
+
+      glUniformMatrix4fv(shader.view_loc, 1, GL_FALSE, glm::value_ptr(view));
+      glUniformMatrix4fv(shader.proj_loc, 1, GL_FALSE,
+                         glm::value_ptr(projection));
+    }
 
     imgui_render(config, mesh_names, texture_names, shader_names);
 
@@ -325,6 +361,9 @@ int main() {
     glDeleteBuffers(1, &meshData.VBO);
     glDeleteBuffers(1, &meshData.EBO);
   }
+  glDeleteVertexArrays(1, &quadVAO);
+  glDeleteBuffers(1, &quadVBO);
+  glDeleteBuffers(1, &quadEBO);
   for (auto &s : shaders) glDeleteProgram(s.program);
   free(config);
 

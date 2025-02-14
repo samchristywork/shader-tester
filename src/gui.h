@@ -10,6 +10,7 @@ struct Config {
   int texture_index;
   int shader_index;
   int polygon_mode;
+  int render_mode; // 0 = model, 1 = quad
 };
 
 void imgui_render(Config *config,
