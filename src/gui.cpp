@@ -2,6 +2,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <vector>
 
 void imgui_init(GLFWwindow *window) {
   IMGUI_CHECKVERSION();
@@ -14,19 +15,31 @@ void imgui_init(GLFWwindow *window) {
   ImGui_ImplOpenGL3_Init("#version 330");
 }
 
-void imgui_render(Config *config) {
+void imgui_render(Config *config,
+                  const std::vector<std::string> &mesh_names,
+                  const std::vector<std::string> &texture_names,
+                  const std::vector<std::string> &shader_names) {
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
-  ImGui::Begin("Window");
-  ImGui::Text("Hello, World!");
-  ImGui::SliderFloat("x", &config->x, -1.0f, 1.0f);
-  ImGui::SliderFloat("y", &config->y, -1.0f, 1.0f);
-  ImGui::SliderFloat("z", &config->z, -1.0f, 1.0f);
+  ImGui::Begin("Controls");
 
-  const char *listbox_items[] = {"Point", "Line", "Fill"};
-  ImGui::ListBox("List", &config->polygon_mode, listbox_items, 3);
+  std::vector<const char *> mesh_items, texture_items, shader_items;
+  for (const auto &s : mesh_names) mesh_items.push_back(s.c_str());
+  for (const auto &s : texture_names) texture_items.push_back(s.c_str());
+  for (const auto &s : shader_names) shader_items.push_back(s.c_str());
+
+  ImGui::ListBox("Model", &config->mesh_index, mesh_items.data(),
+                 (int)mesh_items.size());
+  ImGui::ListBox("Texture", &config->texture_index, texture_items.data(),
+                 (int)texture_items.size());
+  ImGui::ListBox("Shader", &config->shader_index, shader_items.data(),
+                 (int)shader_items.size());
+
+  const char *poly_items[] = {"Fill", "Line", "Point"};
+  ImGui::ListBox("Polygon Mode", &config->polygon_mode, poly_items, 3);
+
   ImGui::End();
 
   ImGui::Render();

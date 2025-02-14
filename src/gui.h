@@ -2,15 +2,20 @@
 #define GUI_H
 
 #include <GLFW/glfw3.h>
+#include <string>
+#include <vector>
 
 struct Config {
-  float x;
-  float y;
-  float z;
+  int mesh_index;
+  int texture_index;
+  int shader_index;
   int polygon_mode;
 };
 
-void imgui_render(Config *config);
+void imgui_render(Config *config,
+                  const std::vector<std::string> &mesh_names,
+                  const std::vector<std::string> &texture_names,
+                  const std::vector<std::string> &shader_names);
 void imgui_init(GLFWwindow *window);
 
 #endif
