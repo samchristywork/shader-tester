@@ -12,5 +12,6 @@ struct Player {
 };
 
 void update_player(GLFWwindow *window, struct Player &player);
+void mouse_cursor_callback(GLFWwindow *window, double xpos, double ypos);
 
 #endif

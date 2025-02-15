@@ -351,6 +351,7 @@ int main() {
   for (const auto &t : textures) texture_names.push_back(t.name);
 
   glfwSetKeyCallback(window, key_callback);
+  glfwSetCursorPosCallback(window, mouse_cursor_callback);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   // Fullscreen quad (NDC coords, identity matrices will fill the screen)
