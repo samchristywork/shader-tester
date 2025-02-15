@@ -69,4 +69,5 @@ void load_model(std::vector<MeshData> *meshDataList, const char *filename) {
   glBindVertexArray(0);
 
   meshDataList->push_back(*meshData);
+  delete meshData;
 }
