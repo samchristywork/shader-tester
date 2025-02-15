@@ -47,6 +47,10 @@ void imgui_render(Config *config,
     ImGui::ListBox("Polygon Mode", &config->polygon_mode, poly_items, 3);
   }
 
+  if (ImGui::Button("Reload Shader")) {
+    config->reload_requested = true;
+  }
+
   ImGui::End();
 
   ImGui::Render();

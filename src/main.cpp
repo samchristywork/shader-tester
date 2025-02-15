@@ -17,6 +17,8 @@ struct ShaderData {
   GLint proj_loc;
   GLint texture_loc;
   std::string name;
+  std::string vert_path;
+  std::string frag_path;
 };
 
 struct TextureData {
@@ -185,12 +187,86 @@ ShaderData load_shader_program(const std::string &name, const char *vert_path,
   ShaderData sd;
   sd.program = prog;
   sd.name = name;
+  sd.vert_path = vert_path;
+  sd.frag_path = frag_path;
   sd.time_loc = glGetUniformLocation(prog, "time");
   sd.model_loc = glGetUniformLocation(prog, "model");
   sd.view_loc = glGetUniformLocation(prog, "view");
   sd.proj_loc = glGetUniformLocation(prog, "projection");
   sd.texture_loc = glGetUniformLocation(prog, "textureSampler");
   return sd;
+}
+
+// Returns 0 on failure (prints error but does not exit).
+static GLuint try_create_shader(GLenum type, const char *src) {
+  GLuint shader = glCreateShader(type);
+  glShaderSource(shader, 1, &src, nullptr);
+  glCompileShader(shader);
+
+  GLint success;
+  glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    char info_log[512];
+    glGetShaderInfoLog(shader, 512, nullptr, info_log);
+    fprintf(stderr, "Error: Shader compilation failed: %s\n", info_log);
+    glDeleteShader(shader);
+    return 0;
+  }
+  return shader;
+}
+
+// Reloads shader from disk. Keeps the existing program on failure.
+static void reload_shader(ShaderData &sd) {
+  FILE *vf = fopen(sd.vert_path.c_str(), "r");
+  FILE *ff = fopen(sd.frag_path.c_str(), "r");
+  if (!vf || !ff) {
+    fprintf(stderr, "Error: Could not open shader files for reload\n");
+    if (vf) fclose(vf);
+    if (ff) fclose(ff);
+    return;
+  }
+  fclose(vf);
+  fclose(ff);
+
+  char *vert_src = read_shader(sd.vert_path.c_str());
+  char *frag_src = read_shader(sd.frag_path.c_str());
+
+  GLuint vert = try_create_shader(GL_VERTEX_SHADER, vert_src);
+  GLuint frag = try_create_shader(GL_FRAGMENT_SHADER, frag_src);
+  free(vert_src);
+  free(frag_src);
+
+  if (!vert || !frag) {
+    if (vert) glDeleteShader(vert);
+    if (frag) glDeleteShader(frag);
+    return;
+  }
+
+  GLuint prog = glCreateProgram();
+  glAttachShader(prog, vert);
+  glAttachShader(prog, frag);
+  glLinkProgram(prog);
+  glDeleteShader(vert);
+  glDeleteShader(frag);
+
+  GLint link_success;
+  glGetProgramiv(prog, GL_LINK_STATUS, &link_success);
+  if (!link_success) {
+    char info_log[512];
+    glGetProgramInfoLog(prog, 512, nullptr, info_log);
+    fprintf(stderr, "Error: Shader linking failed: %s\n", info_log);
+    glDeleteProgram(prog);
+    return;
+  }
+
+  glDeleteProgram(sd.program);
+  sd.program = prog;
+  sd.time_loc = glGetUniformLocation(prog, "time");
+  sd.model_loc = glGetUniformLocation(prog, "model");
+  sd.view_loc = glGetUniformLocation(prog, "view");
+  sd.proj_loc = glGetUniformLocation(prog, "projection");
+  sd.texture_loc = glGetUniformLocation(prog, "textureSampler");
+  fprintf(stderr, "Shader '%s' reloaded successfully\n", sd.name.c_str());
 }
 
 int main() {
@@ -299,6 +375,7 @@ int main() {
   config->shader_index = 0;
   config->polygon_mode = 0;
   config->render_mode = 0;
+  config->reload_requested = false;
 
   int screenWidth = 0;
   int screenHeight = 0;
@@ -313,6 +390,11 @@ int main() {
     case 2:
       glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
       break;
+    }
+
+    if (config->reload_requested) {
+      reload_shader(shaders[config->shader_index]);
+      config->reload_requested = false;
     }
 
     glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
