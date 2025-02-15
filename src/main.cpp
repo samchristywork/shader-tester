@@ -32,14 +32,14 @@ void glfw_error_callback(int error, const char *description) {
 
 GLuint create_shader(GLenum type, const char *src) {
   GLuint shader = glCreateShader(type);
-  glShaderSource(shader, 1, &src, NULL);
+  glShaderSource(shader, 1, &src, nullptr);
   glCompileShader(shader);
 
   GLint success;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
   if (!success) {
     char info_log[512];
-    glGetShaderInfoLog(shader, 512, NULL, info_log);
+    glGetShaderInfoLog(shader, 512, nullptr, info_log);
     fprintf(stderr, "Error: Shader compilation failed: %s\n", info_log);
     exit(EXIT_FAILURE);
   }
@@ -174,7 +174,7 @@ ShaderData load_shader_program(const std::string &name, const char *vert_path,
   glGetProgramiv(prog, GL_LINK_STATUS, &link_success);
   if (!link_success) {
     char info_log[512];
-    glGetProgramInfoLog(prog, 512, NULL, info_log);
+    glGetProgramInfoLog(prog, 512, nullptr, info_log);
     fprintf(stderr, "Error: Shader linking failed: %s\n", info_log);
     exit(EXIT_FAILURE);
   }
@@ -205,7 +205,7 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-  GLFWwindow *window = glfwCreateWindow(800, 600, "Shader Tester", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(800, 600, "Shader Tester", nullptr, nullptr);
 
   glfwSetWindowSize(window, 800, 600);
   glfwSetWindowPos(window, 100, 100);
