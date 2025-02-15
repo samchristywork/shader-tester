@@ -12,6 +12,7 @@ struct Config {
   int polygon_mode;
   int render_mode; // 0 = model, 1 = quad
   bool reload_requested;
+  std::string shader_error;
 };
 
 void imgui_render(Config *config,
