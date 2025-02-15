@@ -72,7 +72,7 @@ static void GLAPIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id,
                                      const GLchar *message,
                                      const void *userParam) {
   if (type == GL_DEBUG_TYPE_ERROR) {
-    printf("GL ERROR: %s", message);
+    fprintf(stderr, "GL ERROR: %s", message);
   }
 }
 
@@ -121,7 +121,7 @@ GLuint load_texture(const char *filename) {
       format = GL_RGBA;
       break;
     default:
-      printf("Unknown number of channels in texture\n");
+      fprintf(stderr, "Unknown number of channels in texture\n");
       exit(EXIT_FAILURE);
     }
 
@@ -137,7 +137,7 @@ GLuint load_texture(const char *filename) {
                  GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
   } else {
-    printf("Failed to load texture: %s\n", filename);
+    fprintf(stderr, "Failed to load texture: %s\n", filename);
     exit(EXIT_FAILURE);
   }
 
