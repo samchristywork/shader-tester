@@ -1,4 +1,5 @@
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #include <GL/glew.h>
 #include <controls.h>
@@ -6,6 +7,7 @@
 #include <gui.h>
 #include <mesh.h>
 #include <stb/stb_image.h>
+#include <stb/stb_image_write.h>
 #include <string>
 #include <vector>
 
@@ -384,6 +386,7 @@ int main() {
   config->polygon_mode = 0;
   config->render_mode = 0;
   config->reload_requested = false;
+  config->screenshot_requested = false;
 
   int screenWidth = 0;
   int screenHeight = 0;
@@ -453,6 +456,26 @@ int main() {
     }
 
     imgui_render(config, mesh_names, texture_names, shader_names);
+
+    if (config->screenshot_requested) {
+      config->screenshot_requested = false;
+      int w, h;
+      glfwGetFramebufferSize(window, &w, &h);
+      std::vector<unsigned char> pixels(w * h * 3);
+      glPixelStorei(GL_PACK_ALIGNMENT, 1);
+      glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+      // Flip vertically: OpenGL origin is bottom-left, PNG expects top-left
+      for (int row = 0; row < h / 2; ++row) {
+        std::swap_ranges(pixels.begin() + row * w * 3,
+                         pixels.begin() + (row + 1) * w * 3,
+                         pixels.begin() + (h - 1 - row) * w * 3);
+      }
+      if (stbi_write_png("screenshot.png", w, h, 3, pixels.data(), w * 3)) {
+        fprintf(stderr, "Screenshot saved to screenshot.png\n");
+      } else {
+        fprintf(stderr, "Error: Failed to save screenshot\n");
+      }
+    }
 
     glfwSwapBuffers(window);
     glfwPollEvents();

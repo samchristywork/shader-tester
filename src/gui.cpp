@@ -51,6 +51,10 @@ void imgui_render(Config *config,
     config->reload_requested = true;
   }
 
+  if (ImGui::Button("Save Screenshot")) {
+    config->screenshot_requested = true;
+  }
+
   if (!config->shader_error.empty()) {
     ImGui::Spacing();
     ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Shader error:");
