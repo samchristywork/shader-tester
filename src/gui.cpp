@@ -38,7 +38,9 @@ void imgui_render(Config *config,
     ImGui::ListBox("Model", &config->mesh_index, mesh_items.data(),
                    (int)mesh_items.size());
   }
-  ImGui::ListBox("Texture", &config->texture_index, texture_items.data(),
+  ImGui::ListBox("Texture 1", &config->texture_index, texture_items.data(),
+                 (int)texture_items.size());
+  ImGui::ListBox("Texture 2", &config->texture2_index, texture_items.data(),
                  (int)texture_items.size());
   ImGui::ListBox("Shader", &config->shader_index, shader_items.data(),
                  (int)shader_items.size());

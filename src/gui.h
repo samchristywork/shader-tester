@@ -18,6 +18,7 @@ struct UniformValue {
 struct Config {
   int mesh_index;
   int texture_index;
+  int texture2_index;
   int shader_index;
   int polygon_mode;
   int render_mode; // 0 = model, 1 = quad

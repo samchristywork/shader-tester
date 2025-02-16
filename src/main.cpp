@@ -19,6 +19,7 @@ struct ShaderData {
   GLint view_loc;
   GLint proj_loc;
   GLint texture_loc;
+  GLint texture2_loc;
   std::string name;
   std::string vert_path;
   std::string frag_path;
@@ -153,7 +154,7 @@ GLuint load_texture(const char *filename) {
 }
 
 static const char *builtin_uniforms[] = {
-    "time", "model", "view", "projection", "textureSampler", nullptr};
+    "time", "model", "view", "projection", "textureSampler", "textureSampler2", nullptr};
 
 static bool is_builtin_uniform(const std::string &name) {
   for (int i = 0; builtin_uniforms[i]; i++)
@@ -276,6 +277,7 @@ ShaderData load_shader_program(const std::string &name, const char *vert_path,
   sd.view_loc = glGetUniformLocation(prog, "view");
   sd.proj_loc = glGetUniformLocation(prog, "projection");
   sd.texture_loc = glGetUniformLocation(prog, "textureSampler");
+  sd.texture2_loc = glGetUniformLocation(prog, "textureSampler2");
   sd.custom_uniforms = parse_custom_uniforms(vert_src, frag_src, prog);
   free(vert_src);
   free(frag_src);
@@ -373,6 +375,7 @@ static void reload_shader(ShaderData &sd, std::string &shader_error) {
   sd.view_loc = glGetUniformLocation(prog, "view");
   sd.proj_loc = glGetUniformLocation(prog, "projection");
   sd.texture_loc = glGetUniformLocation(prog, "textureSampler");
+  sd.texture2_loc = glGetUniformLocation(prog, "textureSampler2");
   sd.custom_uniforms = std::move(new_uniforms);
   shader_error.clear();
   fprintf(stderr, "Shader '%s' reloaded successfully\n", sd.name.c_str());
@@ -424,6 +427,8 @@ int main() {
       "ripple", "res/shaders/ripple.vert", "res/shaders/ripple.frag"));
   shaders.push_back(load_shader_program(
       "mandelbrot", "res/shaders/mandelbrot.vert", "res/shaders/mandelbrot.frag"));
+  shaders.push_back(load_shader_program(
+      "blend", "res/shaders/blend.vert", "res/shaders/blend.frag"));
 
   std::vector<std::string> shader_names;
   for (const auto &s : shaders) shader_names.push_back(s.name);
@@ -482,6 +487,7 @@ int main() {
   Config *config = (Config *)malloc(sizeof(Config));
   config->mesh_index = 0;
   config->texture_index = 0;
+  config->texture2_index = 1;
   config->shader_index = 0;
   config->polygon_mode = 0;
   config->render_mode = 0;
@@ -520,6 +526,12 @@ int main() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textures[config->texture_index].texture);
     glUniform1i(shader.texture_loc, 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, textures[config->texture2_index].texture);
+    if (shader.texture2_loc != -1)
+      glUniform1i(shader.texture2_loc, 1);
+
     glUniform1f(shader.time_loc, (float)glfwGetTime());
 
     for (const auto &uv : shader.custom_uniforms) {
