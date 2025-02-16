@@ -3,10 +3,12 @@
 in vec2 TexCoord;
 out vec4 FragColor;
 uniform float time;
+uniform float zoom_speed; // 1.0 = original speed
+uniform bool animate;     // true = zoom over time, false = static
 
 void main() {
-  // Animate zoom over time
-  float zoom = pow(0.5, time * 0.3);
+  float effective_time = animate ? time : 0.0;
+  float zoom = pow(0.5, effective_time * 0.3 * zoom_speed);
   vec2 center = vec2(-0.7269, 0.1889);
 
   vec2 c = (TexCoord - vec2(0.5)) * vec2(3.5, 2.5) * zoom + center;

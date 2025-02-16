@@ -18,7 +18,8 @@ void imgui_init(GLFWwindow *window) {
 void imgui_render(Config *config,
                   const std::vector<std::string> &mesh_names,
                   const std::vector<std::string> &texture_names,
-                  const std::vector<std::string> &shader_names) {
+                  const std::vector<std::string> &shader_names,
+                  std::vector<UniformValue> &custom_uniforms) {
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
@@ -53,6 +54,33 @@ void imgui_render(Config *config,
 
   if (ImGui::Button("Save Screenshot")) {
     config->screenshot_requested = true;
+  }
+
+  if (!custom_uniforms.empty()) {
+    ImGui::Separator();
+    ImGui::Text("Uniforms");
+    for (auto &uv : custom_uniforms) {
+      switch (uv.type) {
+      case UniformType::Float:
+        ImGui::DragFloat(uv.name.c_str(), &uv.data[0], 0.01f);
+        break;
+      case UniformType::Vec3:
+        ImGui::ColorEdit3(uv.name.c_str(), uv.data);
+        break;
+      case UniformType::Vec4:
+        ImGui::ColorEdit4(uv.name.c_str(), uv.data);
+        break;
+      case UniformType::Bool: {
+        bool b = (uv.i_val != 0);
+        if (ImGui::Checkbox(uv.name.c_str(), &b))
+          uv.i_val = b ? 1 : 0;
+        break;
+      }
+      case UniformType::Int:
+        ImGui::DragInt(uv.name.c_str(), &uv.i_val);
+        break;
+      }
+    }
   }
 
   if (!config->shader_error.empty()) {

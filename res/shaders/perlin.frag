@@ -4,6 +4,9 @@ in vec2 TexCoord;
 out vec4 FragColor;
 uniform sampler2D textureSampler;
 uniform float time;
+uniform float noise_scale; // 1.0 = original (10x)
+uniform float speed;       // 1.0 = original speed
+uniform vec3 tint;         // (1,1,1) = no tint
 
 vec2 random2(vec2 st) {
   st = vec2(dot(st, vec2(127.1, 311.7)), dot(st, vec2(269.5, 183.3)));
@@ -41,9 +44,9 @@ float perlinNoise(vec2 st, float persistence, int octaves) {
 
 void main() {
   vec2 st = TexCoord;
-  st.x += time * 0.1;
-  float noiseValue = perlinNoise(st * 10.0, 0.5, 4) + 0.5;
-  vec4 noiseColor = vec4(vec3(noiseValue), 1.0);
+  st.x += time * 0.1 * speed;
+  float noiseValue = perlinNoise(st * 10.0 * noise_scale, 0.5, 4) + 0.5;
+  vec4 noiseColor = vec4(vec3(noiseValue) * tint, 1.0);
 
   FragColor = texture(textureSampler, TexCoord);
   FragColor = mix(FragColor, noiseColor, 0.5);

@@ -6,6 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <gui.h>
 #include <mesh.h>
+#include <sstream>
 #include <stb/stb_image.h>
 #include <stb/stb_image_write.h>
 #include <string>
@@ -21,6 +22,7 @@ struct ShaderData {
   std::string name;
   std::string vert_path;
   std::string frag_path;
+  std::vector<UniformValue> custom_uniforms;
 };
 
 struct TextureData {
@@ -150,6 +152,87 @@ GLuint load_texture(const char *filename) {
   return texture;
 }
 
+static const char *builtin_uniforms[] = {
+    "time", "model", "view", "projection", "textureSampler", nullptr};
+
+static bool is_builtin_uniform(const std::string &name) {
+  for (int i = 0; builtin_uniforms[i]; i++)
+    if (name == builtin_uniforms[i])
+      return true;
+  return false;
+}
+
+// Parse a single shader source for custom uniforms (float/vec3/vec4/bool/int).
+static void parse_uniforms_from_source(const char *src, GLuint prog,
+                                       std::vector<UniformValue> &out) {
+  std::istringstream stream(src);
+  std::string line;
+  while (std::getline(stream, line)) {
+    size_t u = line.find("uniform");
+    if (u == std::string::npos)
+      continue;
+    // Skip if "uniform" is preceded by a comment
+    size_t comment = line.find("//");
+    if (comment != std::string::npos && comment < u)
+      continue;
+
+    std::istringstream ls(line.substr(u + 7));
+    std::string type_str, name_str;
+    ls >> type_str >> name_str;
+    // Strip trailing semicolon and array brackets
+    size_t end = name_str.find_first_of(";[");
+    if (end != std::string::npos)
+      name_str = name_str.substr(0, end);
+    if (name_str.empty() || is_builtin_uniform(name_str))
+      continue;
+
+    UniformType type;
+    if (type_str == "float")
+      type = UniformType::Float;
+    else if (type_str == "vec3")
+      type = UniformType::Vec3;
+    else if (type_str == "vec4")
+      type = UniformType::Vec4;
+    else if (type_str == "bool")
+      type = UniformType::Bool;
+    else if (type_str == "int")
+      type = UniformType::Int;
+    else
+      continue;
+
+    int loc = glGetUniformLocation(prog, name_str.c_str());
+    if (loc == -1)
+      continue;
+
+    // Deduplicate (same uniform may appear in both vert and frag)
+    bool dup = false;
+    for (const auto &existing : out)
+      if (existing.name == name_str) {
+        dup = true;
+        break;
+      }
+    if (dup)
+      continue;
+
+    UniformValue uv;
+    uv.name = name_str;
+    uv.location = loc;
+    uv.type = type;
+    uv.data[0] = uv.data[1] = uv.data[2] = uv.data[3] = 1.0f;
+    uv.i_val = (type == UniformType::Bool) ? 1 : 0;
+    out.push_back(uv);
+  }
+}
+
+static std::vector<UniformValue> parse_custom_uniforms(const char *vert_src,
+                                                       const char *frag_src,
+                                                       GLuint prog) {
+  std::vector<UniformValue> result;
+  parse_uniforms_from_source(vert_src, prog, result);
+  parse_uniforms_from_source(frag_src, prog, result);
+  return result;
+}
+
 static std::string basename_no_ext(const std::string &path) {
   size_t slash = path.find_last_of("/\\");
   size_t start = (slash == std::string::npos) ? 0 : slash + 1;
@@ -165,9 +248,6 @@ ShaderData load_shader_program(const std::string &name, const char *vert_path,
 
   GLuint vert = create_shader(GL_VERTEX_SHADER, vert_src);
   GLuint frag = create_shader(GL_FRAGMENT_SHADER, frag_src);
-
-  free(vert_src);
-  free(frag_src);
 
   GLuint prog = glCreateProgram();
   glAttachShader(prog, vert);
@@ -196,6 +276,9 @@ ShaderData load_shader_program(const std::string &name, const char *vert_path,
   sd.view_loc = glGetUniformLocation(prog, "view");
   sd.proj_loc = glGetUniformLocation(prog, "projection");
   sd.texture_loc = glGetUniformLocation(prog, "textureSampler");
+  sd.custom_uniforms = parse_custom_uniforms(vert_src, frag_src, prog);
+  free(vert_src);
+  free(frag_src);
   return sd;
 }
 
@@ -239,10 +322,10 @@ static void reload_shader(ShaderData &sd, std::string &shader_error) {
   std::string error;
   GLuint vert = try_create_shader(GL_VERTEX_SHADER, vert_src, error);
   GLuint frag = try_create_shader(GL_FRAGMENT_SHADER, frag_src, error);
-  free(vert_src);
-  free(frag_src);
 
   if (!vert || !frag) {
+    free(vert_src);
+    free(frag_src);
     shader_error = error;
     if (vert) glDeleteShader(vert);
     if (frag) glDeleteShader(frag);
@@ -259,12 +342,28 @@ static void reload_shader(ShaderData &sd, std::string &shader_error) {
   GLint link_success;
   glGetProgramiv(prog, GL_LINK_STATUS, &link_success);
   if (!link_success) {
+    free(vert_src);
+    free(frag_src);
     char info_log[512];
     glGetProgramInfoLog(prog, 512, nullptr, info_log);
     fprintf(stderr, "Error: Shader linking failed: %s\n", info_log);
     shader_error = info_log;
     glDeleteProgram(prog);
     return;
+  }
+
+  auto new_uniforms = parse_custom_uniforms(vert_src, frag_src, prog);
+  free(vert_src);
+  free(frag_src);
+  // Preserve existing values for uniforms that survived the reload
+  for (auto &nu : new_uniforms) {
+    for (const auto &old : sd.custom_uniforms) {
+      if (old.name == nu.name && old.type == nu.type) {
+        for (int k = 0; k < 4; k++) nu.data[k] = old.data[k];
+        nu.i_val = old.i_val;
+        break;
+      }
+    }
   }
 
   glDeleteProgram(sd.program);
@@ -274,6 +373,7 @@ static void reload_shader(ShaderData &sd, std::string &shader_error) {
   sd.view_loc = glGetUniformLocation(prog, "view");
   sd.proj_loc = glGetUniformLocation(prog, "projection");
   sd.texture_loc = glGetUniformLocation(prog, "textureSampler");
+  sd.custom_uniforms = std::move(new_uniforms);
   shader_error.clear();
   fprintf(stderr, "Shader '%s' reloaded successfully\n", sd.name.c_str());
 }
@@ -414,13 +514,31 @@ int main() {
     glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    const ShaderData &shader = shaders[config->shader_index];
+    ShaderData &shader = shaders[config->shader_index];
     glUseProgram(shader.program);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textures[config->texture_index].texture);
     glUniform1i(shader.texture_loc, 0);
     glUniform1f(shader.time_loc, (float)glfwGetTime());
+
+    for (const auto &uv : shader.custom_uniforms) {
+      switch (uv.type) {
+      case UniformType::Float:
+        glUniform1f(uv.location, uv.data[0]);
+        break;
+      case UniformType::Vec3:
+        glUniform3fv(uv.location, 1, uv.data);
+        break;
+      case UniformType::Vec4:
+        glUniform4fv(uv.location, 1, uv.data);
+        break;
+      case UniformType::Bool:
+      case UniformType::Int:
+        glUniform1i(uv.location, uv.i_val);
+        break;
+      }
+    }
 
     glm::mat4 identity = glm::mat4(1.0f);
 
@@ -455,7 +573,8 @@ int main() {
                          glm::value_ptr(projection));
     }
 
-    imgui_render(config, mesh_names, texture_names, shader_names);
+    imgui_render(config, mesh_names, texture_names, shader_names,
+                 shader.custom_uniforms);
 
     if (config->screenshot_requested) {
       config->screenshot_requested = false;
