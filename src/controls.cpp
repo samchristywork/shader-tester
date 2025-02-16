@@ -47,8 +47,8 @@ void mouse_cursor_callback(GLFWwindow *window, double xpos, double ypos) {
       !ImGui::GetIO().WantCaptureMouse) {
     double dx = xpos - last_x;
     double dy = ypos - last_y;
-    player.theta += (float)(dx * 0.005);
-    player.y -= (float)(dy * 0.02);
+    player.theta -= (float)(dx * 0.005);
+    player.y += (float)(dy * 0.02);
   }
 
   last_x = xpos;
