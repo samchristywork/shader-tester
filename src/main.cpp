@@ -264,6 +264,15 @@ ShaderData load_shader_program(const std::string &name, const char *vert_path,
     exit(EXIT_FAILURE);
   }
 
+  glValidateProgram(prog);
+  GLint validate_success;
+  glGetProgramiv(prog, GL_VALIDATE_STATUS, &validate_success);
+  if (!validate_success) {
+    char info_log[512];
+    glGetProgramInfoLog(prog, 512, nullptr, info_log);
+    fprintf(stderr, "Warning: Shader validation failed: %s\n", info_log);
+  }
+
   glDeleteShader(vert);
   glDeleteShader(frag);
 
@@ -352,6 +361,16 @@ static void reload_shader(ShaderData &sd, std::string &shader_error) {
     shader_error = info_log;
     glDeleteProgram(prog);
     return;
+  }
+
+  glValidateProgram(prog);
+  GLint validate_success;
+  glGetProgramiv(prog, GL_VALIDATE_STATUS, &validate_success);
+  if (!validate_success) {
+    char info_log[512];
+    glGetProgramInfoLog(prog, 512, nullptr, info_log);
+    fprintf(stderr, "Warning: Shader validation failed: %s\n", info_log);
+    shader_error += std::string("Validation: ") + info_log;
   }
 
   auto new_uniforms = parse_custom_uniforms(vert_src, frag_src, prog);
