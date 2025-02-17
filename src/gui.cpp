@@ -24,43 +24,47 @@ void imgui_render(Config *config,
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
-  ImGui::Begin("Controls");
-
   std::vector<const char *> mesh_items, texture_items, shader_items;
   for (const auto &s : mesh_names) mesh_items.push_back(s.c_str());
   for (const auto &s : texture_names) texture_items.push_back(s.c_str());
   for (const auto &s : shader_names) shader_items.push_back(s.c_str());
 
+  ImGui::Begin("Render");
   const char *render_mode_items[] = {"Model", "Quad"};
   ImGui::ListBox("Render Mode", &config->render_mode, render_mode_items, 2);
-
   if (config->render_mode == 0) {
     ImGui::ListBox("Model", &config->mesh_index, mesh_items.data(),
                    (int)mesh_items.size());
+    const char *poly_items[] = {"Fill", "Line", "Point"};
+    ImGui::ListBox("Polygon Mode", &config->polygon_mode, poly_items, 3);
   }
+  if (ImGui::Button("Save Screenshot")) {
+    config->screenshot_requested = true;
+  }
+  ImGui::End();
+
+  ImGui::Begin("Textures");
   ImGui::ListBox("Texture 1", &config->texture_index, texture_items.data(),
                  (int)texture_items.size());
   ImGui::ListBox("Texture 2", &config->texture2_index, texture_items.data(),
                  (int)texture_items.size());
+  ImGui::End();
+
+  ImGui::Begin("Shader");
   ImGui::ListBox("Shader", &config->shader_index, shader_items.data(),
                  (int)shader_items.size());
-
-  const char *poly_items[] = {"Fill", "Line", "Point"};
-  if (config->render_mode == 0) {
-    ImGui::ListBox("Polygon Mode", &config->polygon_mode, poly_items, 3);
-  }
-
   if (ImGui::Button("Reload Shader")) {
     config->reload_requested = true;
   }
-
-  if (ImGui::Button("Save Screenshot")) {
-    config->screenshot_requested = true;
+  if (!config->shader_error.empty()) {
+    ImGui::Spacing();
+    ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Shader error:");
+    ImGui::TextWrapped("%s", config->shader_error.c_str());
   }
+  ImGui::End();
 
   if (!custom_uniforms.empty()) {
-    ImGui::Separator();
-    ImGui::Text("Uniforms");
+    ImGui::Begin("Uniforms");
     for (auto &uv : custom_uniforms) {
       switch (uv.type) {
       case UniformType::Float:
@@ -83,15 +87,8 @@ void imgui_render(Config *config,
         break;
       }
     }
+    ImGui::End();
   }
-
-  if (!config->shader_error.empty()) {
-    ImGui::Spacing();
-    ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Shader error:");
-    ImGui::TextWrapped("%s", config->shader_error.c_str());
-  }
-
-  ImGui::End();
 
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
