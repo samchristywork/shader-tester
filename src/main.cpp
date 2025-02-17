@@ -480,6 +480,21 @@ int main() {
   glfwSetCursorPosCallback(window, mouse_cursor_callback);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+  // Background gradient shader
+  char *bg_vert_src = read_shader("res/shaders/background.vert");
+  char *bg_frag_src = read_shader("res/shaders/background.frag");
+  GLuint bg_vert = create_shader(GL_VERTEX_SHADER, bg_vert_src);
+  GLuint bg_frag = create_shader(GL_FRAGMENT_SHADER, bg_frag_src);
+  free(bg_vert_src);
+  free(bg_frag_src);
+  GLuint bg_prog = glCreateProgram();
+  glAttachShader(bg_prog, bg_vert);
+  glAttachShader(bg_prog, bg_frag);
+  glLinkProgram(bg_prog);
+  glDeleteShader(bg_vert);
+  glDeleteShader(bg_frag);
+  GLint bg_time_loc = glGetUniformLocation(bg_prog, "time");
+
   // Fullscreen quad (NDC coords, identity matrices will fill the screen)
   float quad_verts[] = {
       -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
@@ -503,7 +518,7 @@ int main() {
   glEnableVertexAttribArray(1);
   glBindVertexArray(0);
 
-  Config *config = (Config *)malloc(sizeof(Config));
+  Config *config = new Config();
   config->mesh_index = 0;
   config->texture_index = 0;
   config->texture2_index = 1;
@@ -536,8 +551,18 @@ int main() {
     glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
     update_player(window, player);
 
-    glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Draw animated gradient background
+    glDisable(GL_DEPTH_TEST);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glUseProgram(bg_prog);
+    glUniform1f(bg_time_loc, (float)glfwGetTime());
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    glEnable(GL_DEPTH_TEST);
 
     ShaderData &shader = shaders[config->shader_index];
     glUseProgram(shader.program);
@@ -640,7 +665,8 @@ int main() {
   glDeleteBuffers(1, &quadVBO);
   glDeleteBuffers(1, &quadEBO);
   for (auto &s : shaders) glDeleteProgram(s.program);
-  free(config);
+  glDeleteProgram(bg_prog);
+  delete config;
 
   glfwTerminate();
 }
