@@ -3,6 +3,7 @@
 
 #include <GL/glew.h>
 #include <controls.h>
+#include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <gui.h>
 #include <mesh.h>
@@ -493,7 +494,9 @@ int main() {
   glLinkProgram(bg_prog);
   glDeleteShader(bg_vert);
   glDeleteShader(bg_frag);
-  GLint bg_time_loc = glGetUniformLocation(bg_prog, "time");
+  GLint bg_time_loc        = glGetUniformLocation(bg_prog, "time");
+  GLint bg_inv_vp_loc      = glGetUniformLocation(bg_prog, "inv_view_proj");
+  GLint bg_cam_pos_loc     = glGetUniformLocation(bg_prog, "camera_pos");
 
   // Fullscreen quad (NDC coords, identity matrices will fill the screen)
   float quad_verts[] = {
@@ -554,11 +557,19 @@ int main() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Draw animated gradient background
+    // Draw background with camera-aligned horizon
+    glm::vec3 cam_pos = glm::vec3(player.x, player.y, player.z);
+    float bg_aspect = (screenHeight > 0) ? (float)screenWidth / (float)screenHeight : 1.0f;
+    glm::mat4 bg_view = glm::lookAt(cam_pos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 bg_proj = glm::perspective(glm::radians(45.0f), bg_aspect, 0.1f, 100.0f);
+    glm::mat4 bg_inv_vp = glm::inverse(bg_proj * bg_view);
+
     glDisable(GL_DEPTH_TEST);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glUseProgram(bg_prog);
     glUniform1f(bg_time_loc, (float)glfwGetTime());
+    glUniformMatrix4fv(bg_inv_vp_loc, 1, GL_FALSE, glm::value_ptr(bg_inv_vp));
+    glUniform3fv(bg_cam_pos_loc, 1, glm::value_ptr(cam_pos));
     glBindVertexArray(quadVAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
