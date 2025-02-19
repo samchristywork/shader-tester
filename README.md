@@ -43,6 +43,14 @@ libassimp-dev
 
 ## Building
 
+```
+make          # standard build
+make debug    # build with warnings and debug symbols
+make release  # build with optimizations
+make run      # build and run
+make clean    # remove build artifacts
+```
+
 ## License
 
 This work is licensed under the GNU General Public License version 3 (GPLv3).
