@@ -14,7 +14,9 @@ tweaking without writing any UI code. When a shader fails to compile or link,
 the error log is displayed in the interface and the previous working program
 continues to run.
 
-## Screenshots
+<p align="center">
+  <img src="./res/screenshot.png" />
+</p>
 
 ## Features
 
