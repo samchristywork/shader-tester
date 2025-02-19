@@ -20,6 +20,17 @@ continues to run.
 
 ## Features
 
+- Real-time preview of GLSL vertex and fragment shaders on 3D geometry
+- Live shader reloading with error display and graceful fallback
+- Automatic detection and UI generation for custom uniforms (`float`, `int`, `bool`, `vec3`, `vec4`)
+- Selection of built-in shaders: flat, perlin, ripple, mandelbrot, blend
+- Selection of built-in meshes: box, circle, cone, cylinder, grid, icosphere, monkey, plane, torus, UV sphere
+- Selection of built-in textures: gradient, checkerboard, rand
+- Animated sky background rendered with a dedicated background shader
+- First-person camera with mouse look and keyboard movement
+- Dear ImGui interface with separate panels for shader, mesh, texture, and uniform controls
+- OpenGL debug output for catching driver-level errors
+
 ## Dependencies
 
 ## Building
