@@ -33,6 +33,14 @@ continues to run.
 
 ## Dependencies
 
+```
+g++
+libglfw3-dev
+libglew-dev
+libgl-dev
+libassimp-dev
+```
+
 ## Building
 
 ## License
