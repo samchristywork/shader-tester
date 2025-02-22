@@ -449,6 +449,26 @@ int main() {
       "mandelbrot", "res/shaders/mandelbrot.vert", "res/shaders/mandelbrot.frag"));
   shaders.push_back(load_shader_program(
       "blend", "res/shaders/blend.vert", "res/shaders/blend.frag"));
+  shaders.push_back(load_shader_program(
+      "voronoi", "res/shaders/voronoi.vert", "res/shaders/voronoi.frag"));
+  shaders.push_back(load_shader_program(
+      "chromatic", "res/shaders/chromatic.vert", "res/shaders/chromatic.frag"));
+  shaders.push_back(load_shader_program(
+      "pixelate", "res/shaders/pixelate.vert", "res/shaders/pixelate.frag"));
+  shaders.push_back(load_shader_program(
+      "dissolve", "res/shaders/dissolve.vert", "res/shaders/dissolve.frag"));
+  shaders.push_back(load_shader_program(
+      "hologram", "res/shaders/hologram.vert", "res/shaders/hologram.frag"));
+  shaders.push_back(load_shader_program(
+      "plasma", "res/shaders/plasma.vert", "res/shaders/plasma.frag"));
+  shaders.push_back(load_shader_program(
+      "swirl", "res/shaders/swirl.vert", "res/shaders/swirl.frag"));
+  shaders.push_back(load_shader_program(
+      "edge", "res/shaders/edge.vert", "res/shaders/edge.frag"));
+  shaders.push_back(load_shader_program(
+      "crt", "res/shaders/crt.vert", "res/shaders/crt.frag"));
+  shaders.push_back(load_shader_program(
+      "fire", "res/shaders/fire.vert", "res/shaders/fire.frag"));
 
   std::vector<std::string> shader_names;
   for (const auto &s : shaders) shader_names.push_back(s.name);
@@ -473,6 +493,7 @@ int main() {
   textures.push_back(
       {load_texture("res/textures/checkerboard.png"), "checkerboard"});
   textures.push_back({load_texture("res/textures/rand.png"), "rand"});
+  textures.push_back({load_texture("res/textures/monkey.png"), "monkey"});
 
   std::vector<std::string> texture_names;
   for (const auto &t : textures) texture_names.push_back(t.name);
